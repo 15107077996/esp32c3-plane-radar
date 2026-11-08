@@ -92,85 +92,138 @@ static void drawPlaneMarker(int x, int y, int head, uint16_t col) {
   fillTriBody(x, y, sn, cs, -5, 0, -6, 0, -7, -3, col);
 }
 
-static bool fetchPlanes() {
-  // Never start TLS while the big PNG buffer is held.
-  releasePngBuf();
+// URL from the configurable template ({lat} {lon} {nm}).
+static String planeUrl() {
+  String u = s_api.length() ? s_api : String(DEF_PLANE_API);
+  u.replace("{lat}", String(s_lat, 4));
+  u.replace("{lon}", String(s_lon, 4));
+  u.replace("{nm}", String(FETCH_NM, 1));
+  return u;
+}
 
-  char url[160];
-  snprintf(url, sizeof(url),
-           "https://opendata.adsb.fi/api/v3/lat/%.4f/lon/%.4f/dist/%.1f",
-           s_lat, s_lon, FETCH_NM);
+// Pick the smallest range that actually holds traffic (boot / first fix only).
+static void autoFitRange() {
+  if (!s_rangeAuto || s_planeCount <= 0) return;
+  int want = RANGE_N - 1;
+  for (int ri = 0; ri < RANGE_N; ri++) {
+    int fit = 0;
+    for (int i = 0; i < s_planeCount; i++)
+      if (s_planes[i].distM <= RANGES_KM[ri] * 1000.0f) fit++;
+    if (fit >= 3) { want = ri; break; }
+  }
+  s_rangeIdx = want;
+}
+
+// Network fetch into dst. No drawing and no shared globals are touched, so it
+// can run from a task while the screen keeps painting the sweep.
+static bool fetchPlanesCore(Plane *dst, int cap, int *outN) {
+  *outN = 0;
+  String url = planeUrl();
   WiFiClientSecure tls;
   tls.setInsecure();
   HTTPClient http;
   http.setConnectTimeout(8000);
-  http.setTimeout(10000);
-  http.begin(tls, url);
+  http.setTimeout(12000);
+  http.begin(tls, url.c_str());
   int code = http.GET();
-  bool ok = false;
-  if (code == 200) {
-    String body = http.getString();
-    JsonDocument doc;
-    if (!deserializeJson(doc, body)) {
-      JsonArray ac = doc["ac"];
-      // Keep the MAX_PLANES nearest aircraft in distance order. The JSON array
-      // order is arbitrary, so taking the first 40 entries used to drop the
-      // nearby ones and leave the screen empty.
-      int n = 0;
-      int seen = 0;
-      for (JsonObject p : ac) {
-        seen++;
-        if (p["lat"].isNull() || p["lon"].isNull()) continue;
-        Plane tmp;
-        const char *fl = p["flight"];
-        const char *tp = p["t"];
-        String cs = fl ? String(fl) : String("????");
-        cs.trim();
-        cs.toCharArray(tmp.call, sizeof(tmp.call));
-        String tt = tp ? String(tp) : String("");
-        tt.toCharArray(tmp.typ, sizeof(tmp.typ));
-        tmp.lat = p["lat"].as<double>();
-        tmp.lon = p["lon"].as<double>();
-        tmp.alt = p["alt_baro"] | 0;
-        tmp.head = p["track"] | 0;
-        tmp.gs = p["gs"] | 0;
-        tmp.baseMs = millis();
-        float dkm = haversineKm(s_lat, s_lon, tmp.lat, tmp.lon);
-        tmp.distNm = dkm / 1.852f;
-        tmp.distM = dkm * 1000.0f;
-        tmp.bear = bearingTo(s_lat, s_lon, tmp.lat, tmp.lon);
-        if (n >= MAX_PLANES && dkm >= s_planes[MAX_PLANES - 1].distM / 1000.0f)
-          continue;
-        int pos = (n < MAX_PLANES) ? n : (MAX_PLANES - 1);
-        while (pos > 0 && s_planes[pos - 1].distM > tmp.distM) {
-          s_planes[pos] = s_planes[pos - 1];
-          pos--;
-        }
-        s_planes[pos] = tmp;
-        if (n < MAX_PLANES) n++;
-      }
-      s_planeCount = n;
-      s_planeMs = millis();
-      ok = true;
-      // Once, on boot, pick the smallest range that actually holds traffic.
-      if (s_rangeAuto && s_planeCount > 0) {
-        int want = RANGE_N - 1;
-        for (int ri = 0; ri < RANGE_N; ri++) {
-          int fit = 0;
-          for (int i = 0; i < s_planeCount; i++)
-            if (s_planes[i].distM <= RANGES_KM[ri] * 1000.0f) fit++;
-          if (fit >= 3) { want = ri; break; }
-        }
-        s_rangeIdx = want;
-      }
-      int nt = nearest();
-      Serial.printf("[planes] total=%d seen=%d nearest=%d %s %.0fkm range=%.0fkm\n",
-                    s_planeCount, seen, nt, nt >= 0 ? s_planes[nt].call : "-",
-                    nt >= 0 ? planeDistKm(nt) : 0, rangeKm());
-    }
-  } else {
+  if (code != 200) {
     Serial.printf("[planes] http %d\n", code);
+    http.end();
+    return false;
   }
+  String body = http.getString();
   http.end();
-  return ok;
+  JsonDocument doc;
+  if (deserializeJson(doc, body)) {
+    Serial.println("[planes] json fail");
+    return false;
+  }
+  JsonArray ac = doc["ac"];
+  // Keep the nearest aircraft in distance order: the JSON order is arbitrary,
+  // so taking the first entries used to drop the nearby ones.
+  int n = 0, seen = 0;
+  for (JsonObject p : ac) {
+    seen++;
+    if (p["lat"].isNull() || p["lon"].isNull()) continue;
+    Plane tmp;
+    const char *fl = p["flight"];
+    const char *tp = p["t"];
+    String cs = fl ? String(fl) : String("????");
+    cs.trim();
+    cs.toCharArray(tmp.call, sizeof(tmp.call));
+    String tt = tp ? String(tp) : String("");
+    tt.toCharArray(tmp.typ, sizeof(tmp.typ));
+    tmp.lat = p["lat"].as<double>();
+    tmp.lon = p["lon"].as<double>();
+    tmp.alt = p["alt_baro"] | 0;
+    tmp.head = p["track"] | 0;
+    tmp.gs = p["gs"] | 0;
+    tmp.baseMs = millis();
+    float dkm = haversineKm(s_lat, s_lon, tmp.lat, tmp.lon);
+    tmp.distNm = dkm / 1.852f;
+    tmp.distM = dkm * 1000.0f;
+    tmp.bear = bearingTo(s_lat, s_lon, tmp.lat, tmp.lon);
+    if (n >= cap && dkm >= dst[cap - 1].distM / 1000.0f) continue;
+    int pos = (n < cap) ? n : (cap - 1);
+    while (pos > 0 && dst[pos - 1].distM > tmp.distM) {
+      dst[pos] = dst[pos - 1];
+      pos--;
+    }
+    dst[pos] = tmp;
+    if (n < cap) n++;
+  }
+  *outN = n;
+  int nt = 0;
+  float nd = 1e9f;
+  for (int i = 0; i < n; i++)
+    if (dst[i].distM < nd) { nd = dst[i].distM; nt = i; }
+  Serial.printf("[planes] total=%d seen=%d nearest=%s %.0fkm\n", n, seen,
+                n > 0 ? dst[nt].call : "-",
+                n > 0 ? dst[nt].distM / 1000.0f : 0.0f);
+  return true;
+}
+
+// Blocking fetch, used once during setup.
+static bool fetchPlanes() {
+  // Never start TLS while the big PNG buffer is held.
+  releasePngBuf();
+  int n = 0;
+  if (!fetchPlanesCore(s_planes, MAX_PLANES, &n)) return false;
+  s_planeCount = n;
+  s_planeMs = millis();
+  autoFitRange();
+  return true;
+}
+
+// Background fetch: TLS + JSON parsing take a second or two, which used to
+// freeze the sweep on the radar page every minute. The task fills a shadow
+// buffer and the main loop adopts it on the next frame.
+static void planeFetchTask(void *) {
+  int n = 0;
+  bool ok = fetchPlanesCore(s_planesNew, MAX_PLANES, &n);
+  s_planesNewN = ok ? n : -2;
+  s_planeTask = false;
+  vTaskDelete(NULL);
+}
+static bool fetchPlanesAsync() {
+  if (s_planeTask) return false;
+  s_planeTask = true;
+  if (xTaskCreate(planeFetchTask, "planefetch", 12288, NULL, 1, NULL) != pdPASS) {
+    Serial.println("[planes] task spawn fail");
+    s_planeTask = false;
+    return false;
+  }
+  return true;
+}
+static bool adoptPlanes() {
+  int n = s_planesNewN;
+  if (n == -1) return false;
+  s_planesNewN = -1;
+  if (n <= 0) return false; // failed or empty: keep what is already on screen
+  if (n > MAX_PLANES) n = MAX_PLANES;
+  memcpy(s_planes, s_planesNew, sizeof(Plane) * n);
+  s_planeCount = n;
+  s_planeMs = millis();
+  autoFitRange();
+  return true;
 }

@@ -57,8 +57,8 @@
 #define C_DKBLUE 0x0210
 
 // ---------------- version ----------------
-#define FW_VER "1.3.1-c3"
-#define CFG_VER 107
+#define FW_VER "1.4.0-c3"
+#define CFG_VER 108
 // Manual home location: Ganzhou Nankang District (district govt 25.6614N 114.7650E).
 // IP geolocation on this network wrongly resolves to Beijing, so manual mode is default.
 #define HOME_LAT 25.6614f
@@ -66,6 +66,10 @@
 #define HOME_CITY "南康区"
 #define WX_ZOOM 7
 #define FETCH_NM 250.0
+
+// Plane API template. {lat} {lon} {nm} are replaced before the request, so a
+// user can point the radar at another feed without rebuilding.
+#define DEF_PLANE_API "https://opendata.adsb.fi/api/v3/lat/{lat}/lon/{lon}/dist/{nm}"
 #define MAX_PLANES 40
 #define MAX_LABELS 3
 // Upper bound only: the buffer is allocated to the exact tile Content-Length,
@@ -107,6 +111,11 @@ static bool s_cfgValid = false;
 static WebServer *s_srv = nullptr;
 static int s_rainSrc = 0;       // 0 = RainViewer radar mosaic, 1 = satellite IR cloud
 static bool s_fsOk = false;     // SPIFFS mounted, rain page can cache frames
+static String s_wcode = "";     // weather city code, recorded only
+static bool s_unitMi = false;   // distances in miles/feet instead of km/m
+static bool s_animSweep = true; // radar sweep animation
+static bool s_showApt = true;   // draw airport runways on the radar page
+static String s_api = "";       // plane API template, empty = DEF_PLANE_API
 
 // ---------------- time ----------------
 static struct tm s_tm;
@@ -133,6 +142,12 @@ static unsigned long s_planeMs = 0;
 static float s_sweep = 0;
 static unsigned long s_sweepMs = 0;
 static unsigned long s_pageEnterMs = 0;
+
+// Background plane fetch: the network request runs in its own task so a
+// slow TLS handshake can no longer freeze the sweep for a second or two.
+static Plane s_planesNew[MAX_PLANES];   // shadow buffer written by the task
+static volatile int s_planesNewN = -1;  // -1 idle, -2 failed, >=0 ready
+static volatile bool s_planeTask = false;
 
 // ---------------- weather ----------------
 struct DayWx {

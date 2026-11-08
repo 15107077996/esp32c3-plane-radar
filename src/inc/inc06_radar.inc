@@ -61,25 +61,43 @@ static void drawCardinals() {
   txtAt("西", 54, 126, C_WHITE);
 }
 
-// Is the compass point inside the fan the sweep just repainted? Redrawing all
-// four letters every 100ms cost three pointless unifont blits per tick and made
-// the animation uneven, so only the covered ones are repainted.
-static bool arcCovers(float sweep, float ang) {
-  float d = sweep - ang;
-  while (d < 0) d += 360;
-  while (d >= 360) d -= 360;
-  return d <= 42.0f;
-}
+// Airports with a paved main runway (>=1800 m) around the centre: heading in
+// degrees true, length in metres. Taken from the public OurAirports runway
+// dataset, plus ZSGZ from its published aerodrome record (07/25, 2600 m).
+struct AptRw { float hdg; uint16_t len; };
+struct Apt { float lat; float lon; uint8_t n; AptRw rw[2]; };
+static const Apt APTS[] = {
+  {25.8533f, 114.7789f, 1, {{69, 2600}}},   // ZSGZ 赣州黄金 21km
+  {23.5423f, 116.4950f, 1, {{40, 3200}}},   // ZGOW 揭阳潮汕 293km
+  {23.3726f, 113.3065f, 2, {{14, 3800}, {14, 3800}}},   // ZGGG 广州白云 294km
+  {28.2050f, 113.2207f, 2, {{177, 3800}, {177, 3200}}}, // ZGHA 长沙黄花 322km
+  {22.6568f, 113.7806f, 2, {{155, 3800}, {153, 3600}}}, // ZGSZ 深圳宝安 349km
+  {24.5346f, 118.1150f, 1, {{53, 3400}}},   // ZSAM 厦门高崎 360km
+  {28.8534f, 115.8940f, 1, {{23, 3400}}},   // ZSCN 南昌昌北 372km
+  {22.3157f, 113.8883f, 2, {{74, 3800}, {71, 3800}}},   // VHHH 香港赤鱲角 383km
+  {24.4218f, 118.3460f, 1, {{64, 3000}}},   // RCBS 金门 386km
+  {24.7871f, 118.5827f, 1, {{34, 2600}}},   // ZSQZ 泉州晋江 396km
+  {22.1623f, 113.5860f, 1, {{160, 3214}}},  // VMMC 澳门 407km
+};
+#define APT_N ((int)(sizeof(APTS) / sizeof(APTS[0])))
 
-static void drawCardinalsNear(float sweep) {
-  bool n = arcCovers(sweep, 0), s = arcCovers(sweep, 180);
-  bool e = arcCovers(sweep, 90), w = arcCovers(sweep, 270);
-  if (!(n || s || e || w)) return;
-  useFont(u8g2_font_unifont_t_chinese4);
-  if (n) txtC("北", 60, C_WHITE);
-  if (s) txtC("南", 192, C_WHITE);
-  if (e) txtAt("东", 186, 126, C_WHITE);
-  if (w) txtAt("西", 54, 126, C_WHITE);
+// Runways are drawn at a fixed pixel length: at 400 km a 2.6 km runway is less
+// than one pixel, so a true-scale strip would simply never appear.
+static void drawAirports(float R) {
+  if (!s_showApt) return;
+  for (int i = 0; i < APT_N; i++) {
+    float d = haversineKm(s_lat, s_lon, APTS[i].lat, APTS[i].lon);
+    if (d > R) continue;
+    float b = bearingTo(s_lat, s_lon, APTS[i].lat, APTS[i].lon) * PI / 180;
+    int x = R_CX + (int)(sin(b) * R_R * d / R);
+    int y = R_CY - (int)(cos(b) * R_R * d / R);
+    for (int k = 0; k < APTS[i].n; k++) {
+      float a = APTS[i].rw[k].hdg * PI / 180.0f;
+      int dx = (int)(sin(a) * 5), dy = (int)(-cos(a) * 5);
+      gfx->drawLine(x - dx, y - dy, x + dx, y + dy, C_WHITE);
+      gfx->drawLine(x - dx, y - dy + 1, x + dx, y + dy + 1, C_GRAY);
+    }
+  }
 }
 
 static void drawMarkers() {
@@ -93,11 +111,12 @@ static void drawMarkers() {
 // range numbers + header + per-plane text labels (all static text)
 static void drawLabels() {
   float R = rangeKm();
+  float Rv = s_unitMi ? R * 0.621371f : R;
   useFont(u8g2_font_helvB08_tr);
   char lb[16];
   for (int f = 1; f <= 3; f++) {
     int rr = (int)(R_R * f / 3.0f);
-    float val = R * f / 3.0f;
+    float val = Rv * f / 3.0f;
     if (val >= 10) snprintf(lb, sizeof(lb), "%.0f", val);
     else snprintf(lb, sizeof(lb), "%.1f", val);
     txtAt(lb, R_CX + 2, R_CY - rr + 3, C_CYAN);
@@ -114,7 +133,9 @@ static void drawLabels() {
     if (ly < 30) ly = 30;
     if (ly > 196) ly = 196;
     char dm[16];
-    snprintf(dm, sizeof(dm), "%.0fm", planeLiveDistKm(pi) * 1000.0f);
+    float dkm = planeLiveDistKm(pi);
+    if (s_unitMi) snprintf(dm, sizeof(dm), "%.0fft", dkm * 3280.84f);
+    else snprintf(dm, sizeof(dm), "%.0fm", dkm * 1000.0f);
     txtAt(s_planes[pi].call, lx, ly, C_WHITE);
     if (s_planes[pi].typ[0]) txtAt(s_planes[pi].typ, lx, ly + 12, C_YELLOW);
     txtAt(dm, lx, ly + 24, C_CYAN);
@@ -125,7 +146,8 @@ static void drawLabels() {
   txtC(s_city, 12, C_YELLOW);
   useFont(u8g2_font_helvB08_tr);
   char hdr[40];
-  snprintf(hdr, sizeof(hdr), "%.0fkm N%d", R, s_planeCount);
+  if (s_unitMi) snprintf(hdr, sizeof(hdr), "%.0fmi N%d", Rv, s_planeCount);
+  else snprintf(hdr, sizeof(hdr), "%.0fkm N%d", Rv, s_planeCount);
   txtC(hdr, 27, C_GREEN);
 }
 
@@ -147,10 +169,13 @@ static void drawWedge(float sweep, bool erase) {
 static void drawRadarBase() {
   gfx->fillScreen(C_BLACK);
   drawRings();
+  drawAirports(rangeKm());
   computeMapped();
   drawMarkers();
   drawLabels();
-  drawWedge(s_sweep, false);
+  if (s_animSweep) drawWedge(s_sweep, false);
+  // Compass letters go last: the fan sweeps over them, so painting them
+  // before the wedge left "东/西/南/北" half cut until the fan moved on.
   drawCardinals();
 }
 

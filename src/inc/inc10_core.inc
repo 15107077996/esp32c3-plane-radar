@@ -117,26 +117,34 @@ static void tickClock() {
   }
 }
 static void tickPlanes(unsigned long now) {
-  if (now - s_sweepMs >= 100) {
-    s_sweepMs = now;
-    // Erase the old wedge, restore static content, then draw the new wedge.
-    // No full-screen fill -> no flicker.
-    drawWedge(s_sweep, true);
-    drawRings();
-    computeMapped(); // dead-reckon live positions so aircraft glide smoothly
-    drawMarkers();
-    drawLabels();
-    s_sweep += 6;
-    if (s_sweep >= 360) s_sweep -= 360;
-    drawWedge(s_sweep, false);
-    drawCardinalsNear(s_sweep);
+  // A finished background fetch is adopted between frames, never mid-draw.
+  if (adoptPlanes()) drawRadarBase();
+  if (s_animSweep) {
+    if (now - s_sweepMs >= 100) {
+      s_sweepMs = now;
+      // Erase the old wedge, restore static content, then draw the new wedge.
+      // No full-screen fill -> no flicker.
+      drawWedge(s_sweep, true);
+      drawRings();
+      drawAirports(rangeKm());
+      computeMapped(); // dead-reckon live positions so aircraft glide smoothly
+      drawMarkers();
+      drawLabels();
+      s_sweep += 6;
+      if (s_sweep >= 360) s_sweep -= 360;
+      drawWedge(s_sweep, false);
+      // All four letters every tick: the fan sweeps over them, and repainting
+      // only the ones it covered left the rest cut in half.
+      drawCardinals();
+    }
+  } else if (now - s_sweepMs >= 1000) {
+    s_sweepMs = now;   // animation off: a calm once-a-second refresh
+    drawRadarBase();
   }
-  // Hold the network fetch back for the first seconds after entering the page:
-  // a TLS request used to land while the sweep had just started, freezing it
-  // exactly when the stutter was most visible.
-  if (now - s_planeMs >= 60000 && now - s_pageEnterMs >= 10000) {
-    if (fetchPlanes()) drawRadarBase();
-  }
+  // Hold the network fetch back for the first seconds after entering the page
+  // and run it in a task, so the sweep never stops while TLS is working.
+  if (now - s_planeMs >= 60000 && now - s_pageEnterMs >= 10000 && !s_planeTask)
+    fetchPlanesAsync();
 }
 static void tickForecast(unsigned long now) {
   if ((!s_metOk && now - s_metTryMs >= 30000) ||
@@ -189,6 +197,11 @@ void setup() {
   s_lon = s_prefs.getFloat("lon", HOME_LON);
   s_city = s_prefs.getString("city", HOME_CITY);
   s_rainSrc = s_prefs.getInt("rsrc", 0);
+  s_wcode = s_prefs.getString("wcode", "");
+  s_unitMi = s_prefs.getBool("unit_mi", false);
+  s_showApt = s_prefs.getBool("apt", true);
+  s_animSweep = s_prefs.getBool("anim", true);
+  s_api = s_prefs.getString("api", "");
 
   // One-time migration for the configs that still used the wrong IP location.
   // Anything already on 106+ keeps whatever the user set in the web page.
