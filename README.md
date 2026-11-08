@@ -8,7 +8,7 @@
 | :---: | :---: | :---: | :---: |
 | ![雷达](images/radar.jpg) | ![时钟](images/clock.jpg) | ![雨图](images/rain.jpg) | ![自检](images/selftest.jpg) |
 
-以上均为本机实拍，固件版本 `1.3.1-c3`，位置江西麓州南康区。
+以上均为本机实拍，固件版本 `1.3.1-c3`，位置江西赣州南康区。
 
 ---
 
@@ -231,7 +231,7 @@ ADS-B 接口最快也就一分钟一帧，直接画会“跳一格”。所以�
 | 低温预警 | 当前温度 ≤ 0℃ |
 | 降雨提醒 | 明日降水概率 ≥ 80% 且天气代码 ≥ 51 |
 
-大风门楷现在用的是 39km/h（约 6 级，跟实际体感一致）；如果你想对齐气象上蓝警的 6 级（10.8m/s ≈ 39km/h）口径，这个值正好卡在线上；想保守一点就把它改成 50。阈值改在 `inc03_meteo.inc` 的 `buildAlert()` 里一行事。
+大风门槛现在是 39km/h，约等于 6 级（10.8m/s）起风，跟实际体感一致；想更保守就把它改成 50，改的是 `inc03_meteo.inc` 里 `buildAlert()` 的一行。
 
 ### 7. 天气页每一行的 y 坐标
 
@@ -260,7 +260,7 @@ ADS-B 接口最快也就一分钟一帧，直接画会“跳一格”。所以�
 
 ## 九、分区表与内存
 
-`platformio.ini` 里用的是自定义 4MB 分区（`partitions.csv` 内置）：
+`platformio.ini` 里用的是 PlatformIO 自带的 `huge_app.csv`（`board_build.partitions = huge_app.csv`），在 4MB Flash 上给出 3MB app 分区：
 
 | 分区 | 偏移 | 大小 | 用途 |
 | --- | --- | --- | --- |
@@ -270,7 +270,7 @@ ADS-B 接口最快也就一分钟一帧，直接画会“跳一格”。所以�
 | spiffs | 0x310000 | 0xe0000 | 雨图帧缓存 |
 | coredump | 0x3f0000 | 0x10000 | 崩溃转储 |
 
-图是圆形的，径向只有 112px，所有界面坐标都以 `(120,120)` 为圆心、`R_R 112` 为半径算。
+屏幕是圆的，径向只有 112px，所有界面坐标都以 `(120,120)` 为圆心、`R_R 112` 为半径算。
 
 ---
 
@@ -288,7 +288,6 @@ ADS-B 接口最快也就一分钟一帧，直接画会“跳一格”。所以�
 
 ```
 platformio.ini              平台配置（芯片、依赖、分区、构建标志）
-partitions.csv              4MB 分区表
 src/main.cpp               入口，按顺序 include 下列片段
 src/inc/inc01_defs.inc     引脚、颜色、结构体、全局状态、前向声明
 src/inc/inc01b_ver.inc     版本号常量
@@ -301,11 +300,13 @@ src/inc/inc07_clock.inc    时钟盘、指针、日出日落、月相
 src/inc/inc08_forecast.inc 天气页排版
 src/inc/inc09_rain.inc     雨图拉取、PNG 解码、帧缓存与动画
 src/inc/inc10_core.inc     自检页、按键、主循环、setup
-tools/patch_png.py         （调试期用）给 PNGdec 注入计数探针，默认不参与构建
 include/ChinaMap.h         （未接入）离线中国轮廓坐标，供未来地图页用
+tools/patch_png.py         （调试期用）给 PNGdec 注入计数探针，默认不参与构建
 firmware/                   CI 自动构建并提交的固件
 images/                     实拍图
 ```
+
+`tools/patch_png.py` 要生效需在 `platformio.ini` 里手动加一行 `extra_scripts = pre:tools/patch_png.py`；不加它不会执行，不影响正常编译。
 
 ---
 
