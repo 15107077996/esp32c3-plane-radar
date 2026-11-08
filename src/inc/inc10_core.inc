@@ -27,7 +27,7 @@ static void drawAbout() {
   txtAt(l, 34, 146, C_GRAY);
   snprintf(l, sizeof(l), "SRC %s frames %d", s_rainSrc ? "SAT" : "RADAR", s_frameN);
   txtAt(l, 34, 160, C_ORANGE);
-  snprintf(l, sizeof(l), "WEB %s", WiFi.localIP().toString().c_str());
+  snprintf(l, sizeof(l), "AP %s", WiFi.softAPIP().toString().c_str());
   txtAt(l, 34, 174, C_GREEN);
   useFont(u8g2_font_unifont_t_chinese4);
   txtC("短按翻页 长按换挡", 194, C_GRAY);
@@ -210,7 +210,10 @@ void setup() {
     return;
   }
 
-  WiFi.mode(WIFI_STA);
+  // AP+STA from the start: the setup AP must not depend on the station link
+  // being up, and switching mode after connecting can drop the connection.
+  WiFi.mode(WIFI_AP_STA);
+  WiFi.softAP("PlaneRadar-Setup");
   WiFi.begin(s_ssid.c_str(), s_pass.c_str());
   useFont(u8g2_font_helvB10_tr);
   txtC("WIFI...", 110, C_YELLOW);
@@ -228,6 +231,9 @@ void setup() {
   Serial.printf("[wifi] %s rssi=%d\n", WiFi.localIP().toString().c_str(),
                 WiFi.RSSI());
   startWeb();
+  Serial.printf("[web] lan http://%s  ap http://%s\n",
+                WiFi.localIP().toString().c_str(),
+                WiFi.softAPIP().toString().c_str());
 
   if (s_manual) {
     Serial.printf("[loc] manual home %s %.4f %.4f (skip IP)\n",

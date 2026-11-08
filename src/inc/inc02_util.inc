@@ -222,7 +222,8 @@ static void handleUpdateDone() {
 
 static void startWeb() {
   if (s_srv) return;
-  s_srv = new WebServer(8);
+  // WebServer(int port): 8 would listen on port 8, unreachable from a browser.
+  s_srv = new WebServer(80);
   s_srv->on("/", HTTP_GET, handleRoot);
   s_srv->on("/save", HTTP_POST, handleSave);
   s_srv->on("/update", HTTP_POST, handleUpdateDone, handleUpdateUpload);
