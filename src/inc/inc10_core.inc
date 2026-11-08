@@ -155,6 +155,9 @@ static void tickForecast(unsigned long now) {
   }
 }
 static void tickRain(unsigned long now) {
+  // While the background plane fetch holds a TLS session there is not enough
+  // contiguous heap for the 256x256 tile decoder; wait for it to finish.
+  if (s_planeTask) return;
   if ((!s_rainOk && now - s_rainTryMs >= 30000) ||
       (s_rainOk && now - s_rainMs >= 360000)) {
     s_rainTryMs = now;

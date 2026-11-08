@@ -207,6 +207,9 @@ static void planeFetchTask(void *) {
 }
 static bool fetchPlanesAsync() {
   if (s_planeTask) return false;
+  // TLS needs a large contiguous block; the rain page's PNG scratch buffer is
+  // the only thing that big, and it is idle while we are on the radar page.
+  releasePngBuf();
   s_planeTask = true;
   if (xTaskCreate(planeFetchTask, "planefetch", 12288, NULL, 1, NULL) != pdPASS) {
     Serial.println("[planes] task spawn fail");
