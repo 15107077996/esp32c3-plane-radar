@@ -120,7 +120,7 @@ static unsigned long s_dbgLast = 0, s_dbgRep = 0;
 static unsigned long s_dbgN = 0, s_dbgMax = 0;
 static void tickPlanes(unsigned long now) {
   // A finished background fetch is adopted between frames, never mid-draw.
-  if (adoptPlanes()) { drawRadarBase(); Serial.printf("[dbg] adopt n=%d heap=%u\n", s_planeCount, (unsigned)ESP.getFreeHeap()); }
+  if (adoptPlanes()) { drawRadarBase(); Serial.printf("[dbg] t=%lu adopt n=%d heap=%u\n", millis(), s_planeCount, (unsigned)ESP.getFreeHeap()); }
   if (s_animSweep) {
     if (now - s_sweepMs >= 100) {
       unsigned long gap = s_dbgLast ? (now - s_dbgLast) : 0;
@@ -129,18 +129,11 @@ static void tickPlanes(unsigned long now) {
       s_sweepMs = now;
       // Erase the old wedge, restore static content, then draw the new wedge.
       // No full-screen fill -> no flicker.
-      drawWedge(s_sweep, true);
-      drawRings();
-      drawAirports(rangeKm());
-      computeMapped(); // dead-reckon live positions so aircraft glide smoothly
-      drawMarkers();
-      drawLabels();
-      s_sweep += 6;
-      if (s_sweep >= 360) s_sweep -= 360;
-      drawWedge(s_sweep, false);
-      // All four letters every tick: the fan sweeps over them, and repainting
-      // only the ones it covered left the rest cut in half.
-      drawCardinals();
+      float oldSweep = s_sweep;
+      float newSweep = oldSweep + 6;
+      if (newSweep >= 360) newSweep -= 360;
+      drawSweepStep(oldSweep, newSweep);
+      s_sweep = newSweep;
     }
   } else if (now - s_sweepMs >= 1000) {
     s_sweepMs = now;   // animation off: a calm once-a-second refresh
@@ -152,8 +145,8 @@ static void tickPlanes(unsigned long now) {
     fetchPlanesAsync();
   if (now - s_dbgRep >= 30000) {
     s_dbgRep = now;
-    Serial.printf("[dbg] lag n=%lu max=%lums heap=%u\n", s_dbgN, s_dbgMax,
-                  (unsigned)ESP.getFreeHeap());
+    Serial.printf("[dbg] t=%lu lag n=%lu max=%lums heap=%u\n", millis(), s_dbgN,
+                  s_dbgMax, (unsigned)ESP.getFreeHeap());
     s_dbgN = 0; s_dbgMax = 0;
   }
 }

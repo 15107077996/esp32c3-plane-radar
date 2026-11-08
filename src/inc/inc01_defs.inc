@@ -57,7 +57,7 @@
 #define C_DKBLUE 0x0210
 
 // ---------------- version ----------------
-#define FW_VER "1.4.3-dbg"
+#define FW_VER "1.4.4-dbg"
 #define CFG_VER 108
 // Manual home location: Ganzhou Nankang District (district govt 25.6614N 114.7650E).
 // IP geolocation on this network wrongly resolves to Beijing, so manual mode is default.
