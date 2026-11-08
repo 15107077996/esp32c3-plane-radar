@@ -165,6 +165,13 @@ static void tickRain(unsigned long now) {
 }
 
 // ---------------- setup ----------------
+// Read a string key only when it exists: calling getString() on a key that was
+// never written makes the NVS layer log an ERROR line on every cold boot.
+static String rdStr(const char *k, const char *dflt) {
+  if (!s_prefs.isKey(k)) return String(dflt);
+  return s_prefs.getString(k, dflt);
+}
+
 void setup() {
   Serial.begin(115200);
   delay(200);
@@ -190,18 +197,18 @@ void setup() {
   // PNG buffer is no longer held permanently; it is allocated on demand.
   s_prefs.begin("radar", false);
   int ver = s_prefs.getInt("ver", 0);
-  s_ssid = s_prefs.getString("ssid", "");
-  s_pass = s_prefs.getString("pass", "");
+  s_ssid = rdStr("ssid", "");
+  s_pass = rdStr("pass", "");
   s_manual = s_prefs.getBool("manual", true);
   s_lat = s_prefs.getFloat("lat", HOME_LAT);
   s_lon = s_prefs.getFloat("lon", HOME_LON);
-  s_city = s_prefs.getString("city", HOME_CITY);
+  s_city = rdStr("city", HOME_CITY);
   s_rainSrc = s_prefs.getInt("rsrc", 0);
-  s_wcode = s_prefs.getString("wcode", "");
+  s_wcode = rdStr("wcode", "");
   s_unitMi = s_prefs.getBool("unit_mi", false);
   s_showApt = s_prefs.getBool("apt", true);
   s_animSweep = s_prefs.getBool("anim", true);
-  s_api = s_prefs.getString("api", "");
+  s_api = rdStr("api", "");
 
   // One-time migration for the configs that still used the wrong IP location.
   // Anything already on 106+ keeps whatever the user set in the web page.

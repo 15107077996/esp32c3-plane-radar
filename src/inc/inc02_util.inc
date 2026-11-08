@@ -369,6 +369,42 @@ static void handleExit() {
   ESP.restart();
 }
 
+// Percent-encode a UTF-8 string for use as a query value. Raw non-ASCII bytes
+// in the request line are exactly what the geocoder answered 403 to.
+static String urlEnc(const String &v) {
+  String o;
+  char t[8];
+  for (size_t i = 0; i < v.length(); i++) {
+    unsigned char c = (unsigned char)v[i];
+    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+        (c >= '0' && c <= '9') || c == '-' || c == '_' || c == '.' ||
+        c == '~') {
+      o += (char)c;
+    } else {
+      snprintf(t, sizeof(t), "%%%02X", c);
+      o += t;
+    }
+  }
+  return o;
+}
+
+// Free, keyless geocoder (Open-Meteo), queried from the device because a phone
+// joined to the setup hotspot has no internet of its own.
+static int geoGet(const String &url, String &body) {
+  WiFiClientSecure tls;
+  tls.setInsecure();
+  HTTPClient http;
+  http.setConnectTimeout(7000);
+  http.setTimeout(9000);
+  http.setUserAgent("PlaneRadar/1.4");
+  http.addHeader("Accept", "application/json");
+  http.begin(tls, url);
+  int code = http.GET();
+  if (code == 200) body = http.getString();
+  http.end();
+  return code;
+}
+
 static void handleGeocode() {
   String q = s_srv->hasArg("q") ? s_srv->arg("q") : String("");
   q.trim();
@@ -376,22 +412,18 @@ static void handleGeocode() {
     s_srv->send(200, "application/json", "[]");
     return;
   }
-  // Free, keyless geocoder (Open-Meteo). Done on the device: the phone that
-  // joined the setup AP has no internet of its own.
   String url =
       "https://geocoding-api.open-meteo.com/v1/search?count=6&language=zh&format=json&name=";
-  url += q;
-  url.replace(" ", "%20");
-  WiFiClientSecure tls;
-  tls.setInsecure();
-  HTTPClient http;
-  http.setConnectTimeout(6000);
-  http.setTimeout(8000);
-  http.begin(tls, url);
+  url += urlEnc(q);
+  String body = "";
+  int code = geoGet(url, body);
+  if (code != 200) {
+    // Same endpoint over plain HTTP: some networks mangle the TLS handshake.
+    url.replace("https://", "http://");
+    code = geoGet(url, body);
+  }
   String out = "[]";
-  int code = http.GET();
   if (code == 200) {
-    String body = http.getString();
     JsonDocument doc;
     if (!deserializeJson(doc, body)) {
       JsonArray rs = doc["results"];
@@ -413,18 +445,19 @@ static void handleGeocode() {
         long id = r["id"] | 0;
         if (nm.length() == 0) continue;
         if (n++) js += ",";
-        js += "{\"n\":\"" + escJ(nm) + "\",\"a\":\"" + escJ(ad) + "\",\"la\":" +
-              String(la, 5) + ",\"lo\":" + String(lo, 5) + ",\"id\":\"" +
-              String(id) + "\"}";
+        js += "{\"n\":\"" + escJ(nm) + "\",\"a\":\"" + escJ(ad) +
+              "\",\"la\":" + String(la, 5) + ",\"lo\":" + String(lo, 5) +
+              ",\"id\":\"" + String(id) + "\"}";
       }
       js += "]";
       out = js;
       Serial.printf("[geo] %s -> %d found\n", q.c_str(), n);
+    } else {
+      Serial.println("[geo] json parse failed");
     }
   } else {
     Serial.printf("[geo] http %d\n", code);
   }
-  http.end();
   s_srv->send(200, "application/json; charset=utf-8", out);
 }
 
