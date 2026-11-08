@@ -203,6 +203,8 @@ static void planeFetchTask(void *) {
   bool ok = fetchPlanesCore(s_planesNew, MAX_PLANES, &n);
   s_planesNewN = ok ? n : -2;
   s_planeTask = false;
+  Serial.printf("[dbg] async done n=%d heap=%u\n", s_planesNewN,
+                (unsigned)ESP.getFreeHeap());
   vTaskDelete(NULL);
 }
 static bool fetchPlanesAsync() {
@@ -211,6 +213,7 @@ static bool fetchPlanesAsync() {
   // the only thing that big, and it is idle while we are on the radar page.
   releasePngBuf();
   s_planeTask = true;
+  Serial.printf("[dbg] async start heap=%u\n", (unsigned)ESP.getFreeHeap());
   if (xTaskCreate(planeFetchTask, "planefetch", 12288, NULL, 1, NULL) != pdPASS) {
     Serial.println("[planes] task spawn fail");
     s_planeTask = false;

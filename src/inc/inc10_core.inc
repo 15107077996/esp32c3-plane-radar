@@ -116,11 +116,16 @@ static void tickClock() {
     updateClockHands();
   }
 }
+static unsigned long s_dbgLast = 0, s_dbgRep = 0;
+static unsigned long s_dbgN = 0, s_dbgMax = 0;
 static void tickPlanes(unsigned long now) {
   // A finished background fetch is adopted between frames, never mid-draw.
-  if (adoptPlanes()) drawRadarBase();
+  if (adoptPlanes()) { drawRadarBase(); Serial.printf("[dbg] adopt n=%d heap=%u\n", s_planeCount, (unsigned)ESP.getFreeHeap()); }
   if (s_animSweep) {
     if (now - s_sweepMs >= 100) {
+      unsigned long gap = s_dbgLast ? (now - s_dbgLast) : 0;
+      if (gap > 250) { s_dbgN++; if (gap > s_dbgMax) s_dbgMax = gap; }
+      s_dbgLast = now;
       s_sweepMs = now;
       // Erase the old wedge, restore static content, then draw the new wedge.
       // No full-screen fill -> no flicker.
@@ -145,6 +150,12 @@ static void tickPlanes(unsigned long now) {
   // and run it in a task, so the sweep never stops while TLS is working.
   if (now - s_planeMs >= 60000 && now - s_pageEnterMs >= 10000 && !s_planeTask)
     fetchPlanesAsync();
+  if (now - s_dbgRep >= 30000) {
+    s_dbgRep = now;
+    Serial.printf("[dbg] lag n=%lu max=%lums heap=%u\n", s_dbgN, s_dbgMax,
+                  (unsigned)ESP.getFreeHeap());
+    s_dbgN = 0; s_dbgMax = 0;
+  }
 }
 static void tickForecast(unsigned long now) {
   if ((!s_metOk && now - s_metTryMs >= 30000) ||
@@ -268,8 +279,9 @@ void setup() {
   fetchOpenMeteo();
   fetchPlanes();
 
-  s_screen = SCR_CLOCK;
-  renderClock();
+  s_screen = SCR_PLANES;
+  drawRadarBase();
+  Serial.printf("[dbg] boot page=planes heap=%u\n", (unsigned)ESP.getFreeHeap());
   buttonResync();
 }
 
