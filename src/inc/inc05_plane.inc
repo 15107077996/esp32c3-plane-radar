@@ -207,11 +207,19 @@ static void planeFetchTask(void *) {
 }
 static bool fetchPlanesAsync() {
   if (s_planeTask) return false;
+  // The clock starts when the fetch starts, not when its result lands: a TLS
+  // round trip can take tens of seconds, and measuring from the last adopt let
+  // the next fetch start immediately and run back to back.
+  unsigned long now = millis();
+  if (s_planeMs != 0 && now - s_planeMs < 60000) return false;
+  s_planeMs = now;
   // TLS needs a large contiguous block; the rain page's PNG scratch buffer is
   // the only thing that big, and it is idle while we are on the radar page.
   releasePngBuf();
   s_planeTask = true;
-  if (xTaskCreate(planeFetchTask, "planefetch", 12288, NULL, 1, NULL) != pdPASS) {
+  // Core 0 keeps the network stack company; the UI loop owns core 1, so TLS
+  // and JSON parsing can no longer steal a frame from the sweep.
+  if (xTaskCreatePinnedToCore(planeFetchTask, "planefetch", 12288, NULL, 1, NULL, 0) != pdPASS) {
     Serial.println("[planes] task spawn fail");
     s_planeTask = false;
     return false;
@@ -226,7 +234,9 @@ static bool adoptPlanes() {
   if (n > MAX_PLANES) n = MAX_PLANES;
   memcpy(s_planes, s_planesNew, sizeof(Plane) * n);
   s_planeCount = n;
-  s_planeMs = millis();
+  // The 60 s clock was already started when this fetch began; restarting it
+  // here would let the next fetch fire as soon as this one lands, which is how
+  // TLS ended up occupying the radio almost continuously.
   autoFitRange();
   return true;
 }

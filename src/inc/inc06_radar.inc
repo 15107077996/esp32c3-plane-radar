@@ -53,12 +53,19 @@ static void drawRings() {
 
 // Compass letters inside the sweep circle: 北 above, 南 below, 东 right, 西 left.
 // Placed 66px off centre so they clear both the header text and the 75px ring.
+// Each letter gets its own black pad: a white glyph drawn straight onto the
+// bright fan was washed out, which read as the letter being cut in half while
+// the fan swept over it. Pad + glyph are repainted every frame, after the fan.
+static void cardinalAt(const char *c, int x, int y) {
+  gfx->fillRect(x - 2, y - 2, 20, 20, C_BLACK);
+  txtAt(c, x, y, C_WHITE);
+}
 static void drawCardinals() {
   useFont(u8g2_font_unifont_t_chinese4);
-  txtC("北", 60, C_WHITE);
-  txtC("南", 192, C_WHITE);
-  txtAt("东", 186, 126, C_WHITE);
-  txtAt("西", 54, 126, C_WHITE);
+  cardinalAt("北", R_CX - 8, 60);
+  cardinalAt("南", R_CX - 8, 192);
+  cardinalAt("东", 186, 126);
+  cardinalAt("西", 54, 126);
 }
 
 // Airports with a paved main runway (>=1800 m) around the centre: heading in
@@ -177,6 +184,18 @@ static void drawRadarBase() {
   // Compass letters go last: the fan sweeps over them, so painting them
   // before the wedge left "东/西/南/北" half cut until the fan moved on.
   drawCardinals();
+}
+
+// One animation frame: only the fan and what it covers change.
+static void drawSweepStep(float oldSweep, float newSweep) {
+  drawWedge(oldSweep, true);   // erase the fan where it was
+  drawRings();
+  drawAirports(rangeKm());
+  computeMapped(); // dead-reckon live positions so aircraft glide smoothly
+  drawMarkers();
+  drawLabels();
+  drawWedge(newSweep, false);  // draw the fan where it is now
+  drawCardinals();             // letters last, on their own black pads
 }
 
 // Full redraw (page entry / after plane fetch).

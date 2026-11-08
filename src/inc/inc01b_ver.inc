@@ -1,3 +1,3 @@
 // Reported version, overridable without rewriting inc01_defs.inc.
 #undef FW_VER
-#define FW_VER "1.4.2-c3"
+#define FW_VER "1.4.4-c3"

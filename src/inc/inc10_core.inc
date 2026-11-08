@@ -124,18 +124,11 @@ static void tickPlanes(unsigned long now) {
       s_sweepMs = now;
       // Erase the old wedge, restore static content, then draw the new wedge.
       // No full-screen fill -> no flicker.
-      drawWedge(s_sweep, true);
-      drawRings();
-      drawAirports(rangeKm());
-      computeMapped(); // dead-reckon live positions so aircraft glide smoothly
-      drawMarkers();
-      drawLabels();
-      s_sweep += 6;
-      if (s_sweep >= 360) s_sweep -= 360;
-      drawWedge(s_sweep, false);
-      // All four letters every tick: the fan sweeps over them, and repainting
-      // only the ones it covered left the rest cut in half.
-      drawCardinals();
+      float oldSweep = s_sweep;
+      float newSweep = oldSweep + 6;
+      if (newSweep >= 360) newSweep -= 360;
+      drawSweepStep(oldSweep, newSweep);
+      s_sweep = newSweep;
     }
   } else if (now - s_sweepMs >= 1000) {
     s_sweepMs = now;   // animation off: a calm once-a-second refresh
