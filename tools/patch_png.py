@@ -1,84 +1,111 @@
-// Build hook: injects PNGdec instrumentation probes into png.inl before the
-// library is compiled, then reports the counters over the serial port.
-//
-//   python tools/patch_png.py <path-to-lib_png">
-//
-// The script is idempotent: a second run detects the already-patched file by
-// looking for the probe markers and exits without touching it.
 import glob
 import os
-import sys
 
-MARK_PROBE = "/* PRPROBE */"
-MARK_GUARD = "/* PRGUARD */"
+Import("env")
 
-PROBE_DECL = MARK_PROBE + "\n" +
-            "unsigned int g_pngInner = 0;\n" +
-            "unsigned int g_pngOuter = 0;\n" +
-            "unsigned int g_pngInflateCalls = 0;\n"
+project_dir = env.subst("$PROJECT_DIR")
 
+patterns = [
+    os.path.join(project_dir, ".pio", "libdeps", "*", "PNGdec", "**", "png.inl"),
+]
 
-def find_png_inl(libdir):
-    cand = sorted(glob.glob(os.path.join(libdir, "png*", "src", "png.inl")))
-    if not cand:
-        cand = sorted(glob.glob(os.path.join(libdir, "**", "png.inl"),
-                        recursive=True))
-    return cand[0] if cand else None
+found = []
+for pat in patterns:
+    found.extend(glob.glob(pat, recursive=True))
 
+if not found:
+    raise Exception("patch_png: png.inl not found under .pio/libdeps; cannot apply probes")
 
-def patch(path):
-    src = open(path, "r", encoding="utf-8", errors="replace").read()
-    if MARK_PROBE in src:
-        print("[patch] already patched: %s" % path)
-        return 0
+REPLACEMENTS = [
+    (
+        '#include "zlib.h"\n'
+        '//\n'
+        '// Convert 8-bit grayscale into RGB565\n'
+        '//\n',
+        '#include "zlib.h"\n'
+        '// ---- diagnostic probes (temporary) ----\n'
+        'volatile uint32_t g_pngInner = 0;\n'
+        'volatile uint32_t g_pngOuter = 0;\n'
+        'volatile uint32_t g_pngInflateCalls = 0;\n'
+        '// ---- end probes ----\n'
+        '//\n'
+        '// Convert 8-bit grayscale into RGB565\n'
+        '//\n',
+    ),
+    (
+        "            case 0x49444154: //'IDAT' image data block\n"
+        "                while (iLen) {\n"
+        "                    if (iOffset >= iBytesRead) {\n"
+        "                        // we ran out of data; get some more\n"
+        "                        iBytesRead = (*pPage->pfnRead)(&pPage->PNGFile, pPage->ucFileBuf, (iLen > PNG_FILE_BUF_SIZE) ? PNG_FILE_BUF_SIZE : iLen);\n"
+        "                        iFileOffset += iBytesRead;\n"
+        "                        iOffset = 0;\n"
+        "                    } else {\n",
+        "            case 0x49444154: //'IDAT' image data block\n"
+        "                while (iLen) {\n"
+        "                    g_pngOuter++;\n"
+        "                    if (iOffset >= iBytesRead) {\n"
+        "                        // we ran out of data; get some more\n"
+        "                        iBytesRead = (*pPage->pfnRead)(&pPage->PNGFile, pPage->ucFileBuf, (iLen > PNG_FILE_BUF_SIZE) ? PNG_FILE_BUF_SIZE : iLen);\n"
+        "                        iFileOffset += iBytesRead;\n"
+        "                        iOffset = 0;\n"
+        '                        printf("[inf] readRAM got=%d iLen=%d\\r\\n", (int)iBytesRead, (int)iLen);\n'
+        "                    } else {\n",
+    ),
+    (
+        "                    err = 0;\n"
+        "                    while (err == Z_OK) {\n"
+        "                        if (d_stream.avail_out == 0) { // reset for next line\n"
+        "                            d_stream.avail_out = pPage->iPitch+1;\n"
+        "                            d_stream.next_out = pCurr;\n"
+        "                        } // otherwise it could be a continuation of an unfinished line\n"
+        "                        err = inflate(&d_stream, Z_NO_FLUSH, iOptions & PNG_CHECK_CRC);\n"
+        "                        if ((err == Z_OK || err == Z_STREAM_END) && d_stream.avail_out == 0) {// successfully decoded line\n",
+        "                    err = 0;\n"
+        "                    while (err == Z_OK) {\n"
+        "                        g_pngInner++;\n"
+        "                        if (d_stream.avail_out == 0) { // reset for next line\n"
+        "                            d_stream.avail_out = pPage->iPitch+1;\n"
+        "                            d_stream.next_out = pCurr;\n"
+        "                        } // otherwise it could be a continuation of an unfinished line\n"
+        "                        g_pngInflateCalls++;\n"
+        '                        printf("[inf] #%lu y=%d ain=%d aout=%d\\r\\n", (unsigned long)g_pngInflateCalls, (int)y, (int)d_stream.avail_in, (int)d_stream.avail_out);\n'
+        "                        err = inflate(&d_stream, Z_NO_FLUSH, iOptions & PNG_CHECK_CRC);\n"
+        '                        printf("[inf]   err=%d ain=%d aout=%d\\r\\n", (int)err, (int)d_stream.avail_in, (int)d_stream.avail_out);\n'
+        "                        if ((err == Z_OK || err == Z_STREAM_END) && d_stream.avail_out == 0) {// successfully decoded line\n",
+    ),
+    (
+        "                            DeFilter(pCurr, pPrev, pPage->iWidth, pPage->iPitch);\n",
+        '                            printf("[inf] preDef y=%d\\r\\n", (int)y);\n'
+        "                            DeFilter(pCurr, pPrev, pPage->iWidth, pPage->iPitch);\n"
+        '                            printf("[inf] postDef y=%d\\r\\n", (int)y);\n',
+    ),
+    (
+        "                                (*pPage->pfnDraw)(&pngd);\n",
+        '                                printf("[inf] preDraw y=%d\\r\\n", (int)y);\n'
+        "                                (*pPage->pfnDraw)(&pngd);\n"
+        '                                printf("[inf] postDraw y=%d\\r\\n", (int)y);\n',
+    ),
+    (
+        "                        // swap current and previous lines\n"
+        "                        tmp = pCurr; pCurr = pPrev; pPrev = tmp;\n",
+        "                        // swap current and previous lines\n"
+        "                        tmp = pCurr; pCurr = pPrev; pPrev = tmp;\n"
+        '                        printf("[inf] loopEnd y=%d\\r\\n", (int)y);\n',
+    ),
+]
 
-    # Declare the counters right after the includes block of png.inl.
-    anchor = "#include <PNGdec.h>"
-    if anchor not in src:
-        print("[patch] anchor missing, skip")
-        return 1
-    src = src.replace(anchor, anchor + "\n" + PROBE_DECL, 1)
-
-    # Count the inner (Orbit) decode passes and the outer call.
-    fn = "int PNG::decode(int x, int y, int iOptions)"
-    if fn in src:
-        src = src.replace(
-            fn,
-            fn + "\n{\n  g_pngOuter++;",
-            1,
-        )
-
-    # Count inflate calls (PNGParseIDAT -> png->Inflate).
-    inf = "int PNG::Inflate"
-    if inf in src:
-        idx = src.index(inf)
-        brace = src.index("{", idx)
-        src = src[:brace + 1] + "\n  g_pngInflateCalls++;" + src[brace + 1:]
-
-    # Guard the inner buffer: the RainViewer tile is 256x256 RGBA = 262144 B,
-    # which cannot be allocated next to WiFi/TLS. Print before the alloc so a
-    # failure is visible instead of a silent hang.
-    gpos = "g_pngInner++;"
-    if "pDraw->iWidth" in src:
-        src = src.replace(
-            "PNGParseIDAT",
-            MARK_GUARD + "\nPNGParseIDAT",
-            1,
-        )
-
-    open(path, "w", encoding="utf-8").write(src)
-    print("[patch] patched: %s" % path)
-    return 0
-
-
-def main():
-    libdir = sys.argv[1] if len(sys.argv) > 1 else "lib"
-    inl = find_png_inl(libdir)
-    if not inl:
-        print("[patch] png.inl not found under %s" % libdir)
-        return 1
-    return patch(inl)
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+for target in found:
+    with open(target, "r", encoding="utf-8", newline="") as fh:
+        text = fh.read()
+    for old, new in REPLACEMENTS:
+        count = text.count(old)
+        if count != 1:
+            raise Exception(
+                "patch_png: expected exactly 1 match for a probe anchor, found %d in %s"
+                % (count, target)
+            )
+        text = text.replace(old, new)
+    with open(target, "w", encoding="utf-8", newline="") as fh:
+        fh.write(text)
+    print("patch_png: injected probes into %s" % target)
