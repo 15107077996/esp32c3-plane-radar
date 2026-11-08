@@ -229,6 +229,10 @@ void setup() {
   // AP+STA from the start: the setup AP must not depend on the station link
   // being up, and switching mode after connecting can drop the connection.
   WiFi.mode(WIFI_AP_STA);
+  // Modem sleep makes a new TCP SYN wait for the next listen interval, which
+  // costs ~1s on the web page. The board is mains powered, so keep the radio
+  // awake and answer the browser immediately.
+  WiFi.setSleep(false);
   WiFi.softAP("PlaneRadar-Setup");
   WiFi.begin(s_ssid.c_str(), s_pass.c_str());
   useFont(u8g2_font_helvB10_tr);
