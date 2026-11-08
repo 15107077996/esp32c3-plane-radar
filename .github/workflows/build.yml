@@ -7,6 +7,11 @@ on:
 permissions:
   contents: write
 
+# Only one build may push artifacts at a time; overlapping runs used to collide.
+concurrency:
+  group: firmware-build
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -62,8 +67,6 @@ jobs:
           name: firmware-bin
           path: firmware/*
 
-      # .pio is gitignored; keep this step loud so a broken push fails visibly
-      # instead of silently "succeeding".
       - name: Commit build output to repository
         if: always()
         run: |
@@ -77,15 +80,19 @@ jobs:
           git status --short | head -20
           git commit -m "fw: build artifacts from $(echo $GITHUB_SHA | cut -c1-7)" || echo "nothing to commit"
           echo "--- push ---"
-          # Another commit can land while the build runs; rebase and retry rather
-          # than failing the whole job on a non-fast-forward rejection.
+          # The generated binaries belong to this commit, so on a rejected push we
+          # rebase onto the newer main and keep our own regenerated files.
           for i in 1 2 3; do
             if git push; then
               echo "push ok"
               exit 0
             fi
             echo "push rejected, retrying ($i/3)"
-            git pull --rebase --autostash origin main || git rebase --abort
+            if ! git pull --rebase --autostash -X theirs origin main; then
+              git checkout --theirs -- . 2>/dev/null || true
+              git add -A
+              GIT_EDITOR=true git rebase --continue || git rebase --abort
+            fi
             sleep 3
           done
           echo "push failed after 3 retries"
