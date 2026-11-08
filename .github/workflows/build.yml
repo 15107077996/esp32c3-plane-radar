@@ -1,69 +1,81 @@
-name: build
+name: Build Firmware
 
 on:
   push:
-    branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  firmware:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Install PlatformIO
         run: |
-          pip install --quiet platformio esptool
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --upgrade platformio esptool
+          pio --version
 
-      - name: Build
+      - name: Build project
         run: |
+          set -o pipefail
           pio run 2>&1 | tee build.log
 
       - name: Collect and merge binaries
+        if: success()
         run: |
           mkdir -p firmware
           cp .pio/build/esp32c3/firmware.bin firmware/app.bin
-          cp .pio/build/esp32c3/bootloader.bin /tmp/bootloader.bin
-          cp .pio/build/esp32c3/partitions.bin /tmp/partitions.bin
-          esptool --chip esp32c3 merge_bin \
-            --flash_mode dio --flash_freq 80m --flash_size 4MB \
-            -o firmware/firmware.bin \
-            0x0 /tmp/bootloader.bin \
-            0x8000 /tmp/partitions.bin \
-            0xe000 ~/.platformio/packages/framework-arduinoespressif32/tools/partitions/boot_app0.bin \
+          cp .pio/build/esp32c3/bootloader.bin firmware/bootloader.bin
+          cp .pio/build/esp32c3/partitions.bin firmware/partitions.bin
+          BOOTAPP=$(find ~/.platformio/packages/framework-arduinoespressif32 -name boot_app0.bin | head -n1)
+          echo "boot_app0: $BOOTAPP"
+          cp "$BOOTAPP" firmware/boot_app0.bin
+          python3 -m esptool --chip esp32c3 merge_bin -o firmware/firmware.bin --format raw \
+            0x0 firmware/bootloader.bin \
+            0x8000 firmware/partitions.bin \
+            0xe000 firmware/boot_app0.bin \
             0x10000 firmware/app.bin
-          ls -l firmware/
+          ls -l firmware
 
       - name: Verify merged image
+        if: success()
         run: |
-          python - <<'PY'
-          blob = open("firmware/firmware.bin", "rb").read()
-          assert blob[0x0] == 0xE9, "bootloader magic missing"
-          assert blob[0x8000] == 0xAA and blob[0x8001] == 0x50, "partition table missing"
-          assert blob[0x10000] == 0xE9, "app image missing"
-          print("merged ok", len(blob))
+          python3 - <<'PY'
+          b = open("firmware/firmware.bin", "rb").read()
+          assert b[0x0] == 0xE9, "no bootloader magic at 0x0"
+          assert b[0x8000] == 0xAA and b[0x8001] == 0x50, "no partition table at 0x8000"
+          assert b[0x10000] == 0xE9, "no app magic at 0x10000"
+          print("merged ok, size", len(b))
           PY
 
-      - name: Upload artifact
+      - name: Upload firmware artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: firmware
-          path: firmware/
+          name: firmware-bin
+          path: firmware/*
 
-      - name: Commit build output
+      # .pio is gitignored; keep this step loud so a broken push fails visibly
+      # instead of silently "succeeding".
+      - name: Commit build output to repository
+        if: always()
         run: |
+          mkdir -p firmware
+          cp build.log firmware/build.log 2>/dev/null || true
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git add -f firmware
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: update firmware build output"
-            git push
-          else
-            echo "no change"
-          fi
+          echo "--- staged ---"
+          git status --short | head -20
+          git commit -m "fw: build artifacts from $(echo $GITHUB_SHA | cut -c1-7)" || echo "nothing to commit"
+          echo "--- push ---"
+          git push
+          echo "push rc=$?"
