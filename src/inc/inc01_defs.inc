@@ -173,7 +173,7 @@ static bool s_animReady = false;
 static int s_animFrame = 0;
 static unsigned long s_animMs = 0;
 
-// ---------------- forward ----------------
+// ---------------- forward --------------
 static void renderClock();
 static void drawPlanes(float sweep);
 static void drawCardinals();
