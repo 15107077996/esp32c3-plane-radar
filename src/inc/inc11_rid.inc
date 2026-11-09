@@ -28,6 +28,9 @@
 static void ridPage();            // web handler, defined at the bottom
 static bool s_ridWebHooked = false;
 static unsigned long s_ridLastPoll = 0; // last /rid or /rid.json request
+static bool s_ridBleWant = true;        // ?ble=0 -> Beacon only, BLE init skipped
+static bool s_ridOffReq = false;        // /rid?off=1, executed from loop()
+static unsigned long s_ridWantMs = 0;   // when /rid?on=1 arrived
 
 // One detected drone. Kept small: 12 of them plus the shared buffers have to
 // fit beside the web server and the TLS client on a 400 KB part.
@@ -232,13 +235,25 @@ static void ridWifiCb(void *buf, wifi_promiscuous_pkt_type_t type) {
 }
 
 // ---- start / stop --------------------------------------------------------
+// The radio is never switched inside the HTTP handler: dropping the station
+// interface on top of the async TCP task that is still serving that request
+// used to abort() the firmware. ridPage() only records the request and
+// ridTick() in loop() performs the switch once the reply has gone out.
 static void ridStart() {
-  if (s_ridOn) return;
+  if (s_ridOn || !s_ridWant) return;
+  // A plane fetch may be holding a TLS socket; do not pull the interface out
+  // from under a handshake. Bounded, so a stuck fetch cannot lock the feature.
+  if (s_planeTask && millis() - s_ridWantMs < 30000UL) return;
+
+  Serial.println("[rid] s1 release png");
   releasePngBuf();            // give the 64 KB PNG scratch back while scanning
+
+  Serial.println("[rid] s2 wifi ap");
   WiFi.mode(WIFI_AP);         // station off: the radio belongs to the sniffer
-  delay(80);
+  delay(60);
   WiFi.softAP("PlaneRadar-Setup", NULL, RID_CHANNEL);
   esp_wifi_set_channel(RID_CHANNEL, WIFI_SECOND_CHAN_NONE);
+  Serial.println("[rid] s3 ap up, channel set");
 
   s_ridQHead = 0;
   s_ridQTail = 0;
@@ -253,32 +268,42 @@ static void ridStart() {
   esp_wifi_set_promiscuous_filter(&pf);
   esp_wifi_set_promiscuous_rx_cb(&ridWifiCb);
   esp_wifi_set_promiscuous(true);
+  Serial.println("[rid] s4 promiscuous on");
 
-  if (!s_ridCb) s_ridCb = new RidScanCb();
-  NimBLEDevice::init("PlaneRadar-RID");
-  NimBLEScan *sc = NimBLEDevice::getScan();
-  sc->setAdvertisedDeviceCallbacks(s_ridCb, true);
-  sc->setActiveScan(false);
-  sc->setInterval(100);
-  sc->setWindow(99);
-  sc->start(0, false);
-  s_ridBle = true;
+  if (s_ridBleWant) {
+    Serial.printf("[rid] s5 ble init heap=%u max=%u\n",
+                  (unsigned)ESP.getFreeHeap(), (unsigned)ESP.getMaxAllocHeap());
+    if (!s_ridCb) s_ridCb = new RidScanCb();
+    NimBLEDevice::init("PlaneRadar-RID");
+    Serial.println("[rid] s6 ble stack up");
+    NimBLEScan *sc = NimBLEDevice::getScan();
+    sc->setAdvertisedDeviceCallbacks(s_ridCb, true);
+    sc->setActiveScan(false);
+    sc->setInterval(100);
+    sc->setWindow(99);
+    sc->start(0, false);
+    s_ridBle = true;
+    Serial.println("[rid] s7 ble scan running");
+  }
 
   s_ridOn = true;
   s_ridStartMs = millis();
   s_ridLastPoll = millis();
-  Serial.printf("[rid] scan ch%d heap=%u max=%u\n", RID_CHANNEL,
-                (unsigned)ESP.getFreeHeap(), (unsigned)ESP.getMaxAllocHeap());
+  Serial.printf("[rid] scan ch%d ble=%d heap=%u max=%u\n", RID_CHANNEL,
+                s_ridBle ? 1 : 0, (unsigned)ESP.getFreeHeap(),
+                (unsigned)ESP.getMaxAllocHeap());
 }
 
 static void ridStop() {
   if (!s_ridOn) return;
+  Serial.println("[rid] t1 promiscuous off");
   esp_wifi_set_promiscuous(false);
   if (s_ridBle) {
     NimBLEScan *sc = NimBLEDevice::getScan();
     if (sc) sc->stop();
     NimBLEDevice::deinit(true);
     s_ridBle = false;
+    Serial.println("[rid] t2 ble down");
   }
   s_ridOn = false;
   s_ridCount = 0;
@@ -308,6 +333,18 @@ static void ridTick(unsigned long now) {
     s_ridWebHooked = true;
     Serial.println("[rid] web routes /rid /rid.json");
   }
+
+  // Mode changes requested by the web page land here, never in the handler.
+  if (s_ridOffReq) {
+    s_ridOffReq = false;
+    if (s_ridOn) ridStop();
+  }
+  if (s_ridWant && !s_ridOn && s_ridWantMs) {
+    // 400 ms lets the browser finish reading the page it just asked for before
+    // the station interface disappears from under it.
+    if (millis() - s_ridWantMs >= 400UL) ridStart();
+  }
+
   if (!s_ridOn) return;
   // Safety: nobody is watching any more (phone closed the page, or the page
   // was refreshed on a phone that then went to sleep). Hand the radio back so
@@ -453,7 +490,7 @@ static const char *RID_JS =
     ".then(function(d){"
     "var s=document.getElementById('st');"
     "s.textContent=(d.on?'侦测中':'未开启')+' | BLE '+d.ble+' 帧 | Beacon '+d.wifi"
-    "+' 帧 | 解码 '+d.frames+' 条 | '+d.n+' 架';"
+    "+' 帧 | 解码 '+d.frames+' 条 | '+d.n+' 架 | 已跑 '+d.up+' 秒';"
     "var tb=document.getElementById('tb');tb.innerHTML='';"
     "(d.list||[]).forEach(function(o){"
     "var c=document.createElement('div');c.className='rcard';"
@@ -485,13 +522,15 @@ static void ridPage() {
     s_srv->send(200, "application/json; charset=utf-8", js);
     return;
   }
+  // Only record the request here; ridTick() switches the radio from loop().
   if (s_srv->hasArg("on")) {
     s_ridWant = true;
-    if (!s_ridOn) ridStart();
+    s_ridWantMs = millis();
+    s_ridBleWant = s_srv->hasArg("ble") ? (s_srv->arg("ble") != "0") : true;
   }
   if (s_srv->hasArg("off")) {
     s_ridWant = false;
-    ridStop();
+    if (s_ridOn) s_ridOffReq = true;
   }
   String h = pageHead("无人机侦测", "PlaneRadar-Setup");
   h += "<style>.rcard{background:#fff;border:1px solid #dde3ec;border-radius:10px;";
@@ -502,8 +541,11 @@ static void ridPage() {
   h += "<button class=btn onclick=\"location.href='/rid?on=1'\">开启侦测模式</button>";
   h += "<button class=btn style='background:#6b7280' ";
   h += "onclick=\"location.href='/rid?off=1'\">停止侦测，恢复联网</button>";
-  h += "<div class=hint>开启后设备暂停联网（航班与云图停更），只保留热点 ";
-  h += "PlaneRadar-Setup 和本页；手机连该热点后访问 192.168.4.1/rid。停止后自动恢复联网。</div>";
+  h += "<button class=btn style='background:#8a8f98;font-size:13px' ";
+  h += "onclick=\"location.href='/rid?on=1&amp;ble=0'\">只收 Beacon（不开蓝牙）</button>";
+  h += "<div class=hint>点「开启侦测模式」后约 1 秒，设备会关闭联网（航班与云图停更），";
+  h += "只保留热点 PlaneRadar-Setup（信道 6）。手机请连这个热点，再访问 192.168.4.1/rid 看结果。";
+  h += "点「停止」后约 2 秒自动连回原来的 WiFi。</div>";
   h += "<div id=tb></div>";
   h += RID_JS;
   h += "<div class=foot>被动接收 ASTM F3411 / GB 46750 广播 RID，不发射任何信号</div>";

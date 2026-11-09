@@ -49,6 +49,15 @@ jobs:
             0x10000 firmware/app.bin
           ls -l firmware
 
+      - name: Export symbol table
+        if: success()
+        run: |
+          NM=$(find ~/.platformio/packages/toolchain-riscv32-esp/bin -name "*-nm" | head -n1)
+          echo "nm: $NM"
+          "$NM" -n .pio/build/esp32c3/firmware.elf > firmware/symbols.txt
+          head -5 firmware/symbols.txt
+          wc -l firmware/symbols.txt
+
       - name: Verify merged image
         if: success()
         run: |
