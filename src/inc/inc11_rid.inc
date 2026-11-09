@@ -19,6 +19,7 @@
 #define RID_AUTO_STOP_MS 600000UL
 
 static void ridPage();
+static void ridJson(String &out);
 static bool s_ridWebHooked = false;
 static unsigned long s_ridLastPoll = 0;
 static bool s_ridBleWant = true;
@@ -27,6 +28,7 @@ static bool s_ridBleTaskRun = false;
 static bool s_ridOffReq = false;
 static unsigned long s_ridWantMs = 0;
 static unsigned long s_ridHbdMs = 0;
+static bool s_ridInjectReq = false;
 
 struct RidDrone {
   char mac[13];
@@ -374,6 +376,39 @@ static float ridDistKm(const RidDrone &d) {
   return haversineKm(s_lat, s_lon, d.lat, d.lon);
 }
 
+// 注入自测：构造 BasicID / Location / System / OperatorID 四帧真实 ODID 报文，
+// 走完整 ridFeed -> 队列 -> ridApply -> ridJson 路径，不发射任何射频信号。
+// 用途：周围没有 RID 无人机时，验证解码、列表与网页渲染是否正确。
+static void ridInjectTest() {
+  char mac[13] = "aa:bb:cc:00:11:22";
+  uint8_t m[25];
+  memset(m, 0, 25); m[0] = 0x02; m[1] = 0x12;
+  memcpy(m + 2, "TEST-RID-0001", 13);
+  ridFeed(m, 25, mac, 0, 2);
+  memset(m, 0, 25); m[0] = 0x12; m[1] = 0x20; m[2] = 45; m[3] = 8;
+  int32_t la = 256614000, lo = 1147650000;
+  memcpy(m + 5, &la, 4); memcpy(m + 9, &lo, 4);
+  uint16_t ab = 1100, hh = 1080;
+  memcpy(m + 13, &ab, 2); memcpy(m + 17, &hh, 2);
+  ridFeed(m, 25, mac, 0, 2);
+  memset(m, 0, 25); m[0] = 0x42;
+  memcpy(m + 1, "OP-TEST", 7);
+  int32_t ola = 256610000, olo = 1147640000;
+  memcpy(m + 2, &ola, 4); memcpy(m + 6, &olo, 4);
+  ridFeed(m, 25, mac, 0, 2);
+  memset(m, 0, 25); m[0] = 0x52;
+  memcpy(m + 2, "OP-TEST-001", 11);
+  ridFeed(m, 25, mac, 0, 2);
+  while (s_ridQTail != s_ridQHead) {
+    RidMsg *q = &s_ridQ[s_ridQTail];
+    ridApply(q->raw, q->mac, q->rssi, q->tr);
+    s_ridQTail = (s_ridQTail + 1) % RID_QUEUE_N;
+  }
+  Serial.printf("[rid] inject done frames=%d n=%d\n", s_ridFrames, s_ridCount);
+  String js; ridJson(js);
+  Serial.printf("[rid] injjson %s\n", js.c_str());
+}
+
 static void ridTick(unsigned long now) {
   if (!s_ridWebHooked && s_srv) {
     s_srv->on("/rid", HTTP_GET, ridPage);
@@ -382,6 +417,10 @@ static void ridTick(unsigned long now) {
     Serial.println("[rid] web routes /rid /rid.json");
   }
 
+  if (s_ridInjectReq) {
+    s_ridInjectReq = false;
+    ridInjectTest();
+  }
   if (s_ridOffReq) {
     s_ridOffReq = false;
     if (s_ridOn) ridStop();
@@ -576,6 +615,7 @@ static void ridPage() {
     s_ridBleWant = s_srv->hasArg("ble") ? (s_srv->arg("ble") != "0") : true;
     s_ridWifiWant = s_srv->hasArg("wifi") ? (s_srv->arg("wifi") != "0") : true;
   }
+  if (s_srv->hasArg("inject")) s_ridInjectReq = true;
   if (s_srv->hasArg("off")) {
     s_ridWant = false;
     if (s_ridOn) s_ridOffReq = true;
@@ -593,6 +633,8 @@ static void ridPage() {
   h += "onclick=\"location.href='/rid?on=1&amp;ble=0'\">只收 Beacon（不开蓝牙）</button>";
   h += "<button class=btn style='background:#8a8f98;font-size:13px' ";
   h += "onclick=\"location.href='/rid?on=1&amp;wifi=0'\">只收蓝牙（不开 Beacon）</button>";
+  h += "<button class=btn style='background:#2f855a;font-size:13px' ";
+  h += "onclick=\"location.href='/rid?inject=1'\">注入测试数据（验证解码与页面，不发射信号）</button>";
   h += "<div class=hint>点「开启侦测模式」后约 1 秒，设备会关闭联网（航班与云图停更），";
   h += "只保留热点 PlaneRadar-Setup（信道 6）。手机请连这个热点，再访问 192.168.4.1/rid 看结果。";
   h += "点「停止」后约 2 秒自动连回原来的 WiFi。</div>";
