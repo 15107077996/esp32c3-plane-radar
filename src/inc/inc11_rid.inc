@@ -31,7 +31,7 @@ static unsigned long s_ridHbdMs = 0;
 static bool s_ridInjectReq = false;
 
 struct RidDrone {
-  char mac[13];
+  char mac[18];
   char uasId[21];
   char opId[21];
   float lat, lon;
@@ -50,7 +50,7 @@ struct RidDrone {
 static RidDrone s_rid[RID_MAX];
 
 struct RidMsg {
-  char mac[13];
+  char mac[18];
   uint8_t raw[25];
   int8_t rssi;
   uint8_t tr;
@@ -64,7 +64,7 @@ static void ridPush(const uint8_t *m, const char *mac, int8_t rssi, uint8_t tr) 
   int n = (h + 1) % RID_QUEUE_N;
   if (n == s_ridQTail) return;
   memcpy(s_ridQ[h].raw, m, 25);
-  memcpy(s_ridQ[h].mac, mac, 13);
+  memcpy(s_ridQ[h].mac, mac, 18);
   s_ridQ[h].rssi = rssi;
   s_ridQ[h].tr = tr;
   s_ridQHead = n;
@@ -95,7 +95,7 @@ static RidDrone *ridSlot(const char *mac) {
 static void ridApply(const uint8_t *m, const char *mac, int8_t rssi, uint8_t tr) {
   RidDrone *d = ridSlot(mac);
   if (!d) return;
-  if (d->mac[0] == 0) memcpy(d->mac, mac, 13);
+  if (d->mac[0] == 0) memcpy(d->mac, mac, 18);
   d->lastMs = millis();
   d->rssi = rssi;
   if (tr) d->transport = tr;
@@ -174,7 +174,7 @@ static void ridBlePayload(const uint8_t *pl, size_t plLen, const char *mac, int 
 
 class RidScanCb : public NimBLEAdvertisedDeviceCallbacks {
   void onResult(NimBLEAdvertisedDevice *dev) override {
-    char addr[13];
+    char addr[18];
     const uint8_t *v = dev->getAddress().getNative();
     snprintf(addr, sizeof(addr), "%02x:%02x:%02x:%02x:%02x:%02x",
              v[0], v[1], v[2], v[3], v[4], v[5]);
@@ -200,7 +200,7 @@ static void ridWifiFrame(const uint8_t *f, int sigLen) {
         const uint8_t *d = ie + 3;
         int dn = elen - 3;
         if (dn >= 4 && d[0] == 0x0D) { d++; dn--; }
-        char mac[13];
+        char mac[18];
         snprintf(mac, sizeof(mac), "%02x:%02x:%02x:%02x:%02x:%02x",
                  f[10], f[11], f[12], f[13], f[14], f[15]);
         ridFeed(d, dn, mac, 0, 2);
@@ -380,7 +380,7 @@ static float ridDistKm(const RidDrone &d) {
 // 走完整 ridFeed -> 队列 -> ridApply -> ridJson 路径，不发射任何射频信号。
 // 用途：周围没有 RID 无人机时，验证解码、列表与网页渲染是否正确。
 static void ridInjectTest() {
-  char mac[13] = "aa:bb:cc:00:11:22";
+  char mac[18] = "aa:bb:cc:00:11:22";
   uint8_t m[25];
   memset(m, 0, 25); m[0] = 0x02; m[1] = 0x12;
   memcpy(m + 2, "TEST-RID-0001", 13);
