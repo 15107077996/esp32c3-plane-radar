@@ -48,11 +48,16 @@ static void trailPush(int i, double la, double lo) {
 static void trailSample(unsigned long now) {
   if (s_trailMs != 0 && now - s_trailMs < TRAIL_SAMPLE_MS) return;
   s_trailMs = now;
+  int tails = 0;
+  int maxPts = 0;
   for (int i = 0; i < s_planeCount; i++) {
     double la, lo;
     planeLive(i, now, la, lo);
     trailPush(i, la, lo);
+    if (s_trailN[i] > 1) tails++;
+    if (s_trailN[i] > maxPts) maxPts = s_trailN[i];
   }
+  Serial.printf("[trail] planes=%d tails=%d max=%d\n", s_planeCount, tails, maxPts);
 }
 
 // Two entries describe the same aircraft when the callsign matches. Anonymous
