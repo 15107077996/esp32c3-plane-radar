@@ -41,7 +41,7 @@ Collecting bitarray<4.0,>=3.0.0 (from bitstring~=4.3.1)
 Collecting pycparser (from cffi>=1.14->cryptography~=45.0.3)
   Using cached pycparser-3.12-py3-none-any.whl.metadata (9.7 kB)
 Downloading cryptography-45.0.7-cp311-abi3-manylinux_2_34_x86_64.whl (4.5 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 120.0 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 96.9 MB/s  0:00:00
 Downloading ecdsa-0.19.2-py2.py3-none-any.whl (150 kB)
 Downloading bitstring-4.3.1-py3-none-any.whl (71 kB)
 Using cached reedsolo-1.7.0-py3-none-any.whl (32 kB)
@@ -109,11 +109,11 @@ Compiling .pio/build/esp32c3/src/main.cpp.o
 Building .pio/build/esp32c3/bootloader.bin
 Generating partitions .pio/build/esp32c3/partitions.bin
 Compiling .pio/build/esp32c3/lib30b/SPI/SPI.cpp.o
+Compiling .pio/build/esp32c3/liba33/Wire/Wire.cpp.o
 esptool.py v4.9.0
 Creating esp32c3 image...
 Merged 1 ELF section
 Successfully created esp32c3 image.
-Compiling .pio/build/esp32c3/liba33/Wire/Wire.cpp.o
 Compiling .pio/build/esp32c3/libb64/U8g2/U8g2lib.cpp.o
 Archiving .pio/build/esp32c3/lib30b/libSPI.a
 Indexing .pio/build/esp32c3/lib30b/libSPI.a
@@ -132,7 +132,6 @@ Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_cleardisplay.c.o
 Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_d_memory.c.o
 Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_d_setup.c.o
 Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_font.c.o
-Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_fonts.c.o
 In file included from .pio/libdeps/esp32c3/PNGdec/src/PNGdec.h:34,
                  from src/inc/inc01_defs.inc:12,
                  from src/main.cpp:3:
@@ -144,9 +143,96 @@ In file included from .pio/libdeps/esp32c3/PNGdec/src/PNGdec.h:34,
                  ^~~~~~
 In file included from src/main.cpp:13:
 src/inc/inc11_rid.inc: In member function 'virtual void RidScanCb::onResult(NimBLEAdvertisedDevice*)':
-src/inc/inc11_rid.inc:176:37: error: conversion from 'uint8_t*' {aka 'unsigned char*'} to non-scalar type 'std::__cxx11::string' {aka 'std::__cxx11::basic_string<char>'} requested
+src/inc/inc11_rid.inc:180:37: error: conversion from 'uint8_t*' {aka 'unsigned char*'} to non-scalar type 'std::__cxx11::string' {aka 'std::__cxx11::basic_string<char>'} requested
      std::string pl = dev->getPayload();
                       ~~~~~~~~~~~~~~~^~
+src/inc/inc11_rid.inc: At global scope:
+src/inc/inc11_rid.inc:433:5: error: expected unqualified-id before string constant
+     "function pv(v){return (v===undefined||v===null||v==='')?'-':v;}";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:434:5: error: expected unqualified-id before string constant
+     "function st(){fetch('/rid.json',{cache:'no-store'}).then(function(r){return r.json();})";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:435:5: error: expected unqualified-id before string constant
+     ".then(function(d){";
+     ^~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:436:5: error: expected unqualified-id before string constant
+     "var s=document.getElementById('st');";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:437:5: error: expected unqualified-id before string constant
+     "s.textContent=(d.on?'侦测中':'未开启')+' | BLE '+d.ble+' 帧 | Beacon '+d.wifi";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:438:5: error: expected unqualified-id before string constant
+     "+' 帧 | 解码 '+d.frames+' 条 | '+d.n+' 架';";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:439:5: error: expected unqualified-id before string constant
+     "var tb=document.getElementById('tb');tb.innerHTML='';";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:440:5: error: expected unqualified-id before string constant
+     "(d.list||[]).forEach(function(o){";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:441:5: error: expected unqualified-id before string constant
+     "var c=document.createElement('div');c.className='rcard';";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:442:5: error: expected unqualified-id before string constant
+     "var t=document.createElement('div');t.className='rt';";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:443:5: error: expected unqualified-id before string constant
+     "t.textContent=pv(o.id||o.mac);c.appendChild(t);";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:444:5: error: expected unqualified-id before string constant
+     "function row(k,v){var p=document.createElement('div');p.className='rr';";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:445:5: error: expected unqualified-id before string constant
+     "p.textContent=k+'：'+pv(v);c.appendChild(p);}";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:446:5: error: expected unqualified-id before string constant
+     "row('状态 / 机型',(SMS[o.st]||'未知')+' · '+pv(o.ua));";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:447:5: error: expected unqualified-id before string constant
+     "row('距离',o.km>0?o.km+' km':'-');";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:448:5: error: expected unqualified-id before string constant
+     "row('高度 (相对地面)',o.alt>-1000?o.alt+' m ('+(o.h>-1000?o.h+' m':'-')+')':'-');";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:449:5: error: expected unqualified-id before string constant
+     "row('速度 / 航向',o.spd>=0?o.spd+' m/s · '+o.dir+'°':'-');";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:450:5: error: expected unqualified-id before string constant
+     "row('无人机位置',o.la?o.la+', '+o.lo:'未广播');";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:451:5: error: expected unqualified-id before string constant
+     "row('操作者ID',o.op||'未广播');";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:452:5: error: expected unqualified-id before string constant
+     "row('操作者位置',o.ola?o.ola+', '+o.olo:'未广播');";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:453:5: error: expected unqualified-id before string constant
+     "row('信号 / 方式',pv(o.rssi)+' dBm · '+(o.tr==2?'WiFi Beacon':'BLE'));";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:454:5: error: expected unqualified-id before string constant
+     "row('更新 / 来源',o.age+' 秒前 · '+pv(o.mac));";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:455:5: error: expected unqualified-id before string constant
+     "tb.appendChild(c);});";
+     ^~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:456:5: error: expected unqualified-id before string constant
+     "if(!(d.list||[]).length){var e=document.createElement('div');e.className='rcard';";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:457:5: error: expected unqualified-id before string constant
+     "e.textContent=d.on?'暂未收到 RID 广播：把设备放在开阔处，等无人机通电/起飞后再看':'侦测未开启，点上面的按钮';";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from src/main.cpp:13:
+src/inc/inc11_rid.inc:458:5: error: expected unqualified-id before string constant
+     "tb.appendChild(e);}";
+     ^~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:459:5: error: expected unqualified-id before string constant
+     "}).catch(function(){});}";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+src/inc/inc11_rid.inc:460:5: error: expected unqualified-id before string constant
+     "setInterval(st,2000);st();";
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_fonts.c.o
 Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_hvline.c.o
 *** [.pio/build/esp32c3/src/main.cpp.o] Error 1
-========================= [FAILED] Took 56.13 seconds =========================
+========================= [FAILED] Took 58.95 seconds =========================
