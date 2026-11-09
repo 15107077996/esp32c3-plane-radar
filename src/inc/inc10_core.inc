@@ -119,6 +119,9 @@ static void tickClock() {
 static void tickPlanes(unsigned long now) {
   // A finished background fetch is adopted between frames, never mid-draw.
   if (adoptPlanes()) drawRadarBase();
+  // Feed the trail ring buffers at a fixed cadence, independent of the fetch,
+  // so aircraft leave a visible path between the once-a-minute updates.
+  trailSample(now);
   if (s_animSweep) {
     if (now - s_sweepMs >= 100) {
       s_sweepMs = now;

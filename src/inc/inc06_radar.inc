@@ -107,6 +107,38 @@ static void drawAirports(float R) {
   }
 }
 
+// Short comet tail of every aircraft: the last few sampled positions, drawn as
+// a dim-green polyline that fades into the marker. Segments that fall outside
+// the current range are dropped, so a plane visibly flies off the rim.
+static void trailPx(float lat, float lon, float R, int &x, int &y, bool &ok) {
+  float d = haversineKm(s_lat, s_lon, lat, lon);
+  if (d > R) { ok = false; x = 0; y = 0; return; }
+  float b = bearingTo(s_lat, s_lon, lat, lon) * PI / 180.0f;
+  x = R_CX + (int)(sin(b) * R_R * d / R);
+  y = R_CY - (int)(cos(b) * R_R * d / R);
+  ok = true;
+}
+static void drawTrails() {
+  float R = rangeKm();
+  int lim = s_mappedCnt < TRAIL_MAX_DRAW ? s_mappedCnt : TRAIL_MAX_DRAW;
+  for (int k = 0; k < lim; k++) {
+    int pi = s_mapped[k].i;
+    int n = s_trailN[pi];
+    if (n < 2) continue;
+    int head = s_trailHead[pi];
+    int px = 0, py = 0;
+    bool prev = false;
+    for (int j = 0; j < n; j++) {
+      int idx = (head + TRAIL_N - n + j) % TRAIL_N;
+      int x, y;
+      bool ok;
+      trailPx(s_trail[pi][idx].lat, s_trail[pi][idx].lon, R, x, y, ok);
+      if (ok && prev) gfx->drawLine(px, py, x, y, (j > n - 3) ? C_GREEN : C_DKGREEN);
+      px = x; py = y; prev = ok;
+    }
+  }
+}
+
 static void drawMarkers() {
   for (int i = 0; i < s_mappedCnt; i++) {
     int pi = s_mapped[i].i;
@@ -151,10 +183,22 @@ static void drawLabels() {
   // header: Chinese location name + range/count
   useFont(u8g2_font_unifont_t_chinese4);
   txtC(s_city, 12, C_YELLOW);
+  // Nothing inside the ring is not a failure: the feed simply has no aircraft
+  // near this centre. Say so, and how far away the closest one actually is,
+  // instead of leaving the circle looking empty for no stated reason.
+  if (s_mappedCnt == 0 && s_planeCount > 0) {
+    float nd = s_planes[0].distM / 1000.0f;
+    if (s_unitMi) nd *= 0.621371f;
+    char hz[32];
+    snprintf(hz, sizeof(hz), "无飞机 最近%.0f%s", nd, s_unitMi ? "mi" : "km");
+    txtC(hz, 27, C_ORANGE);
+    useFont(u8g2_font_helvB08_tr);
+    return;
+  }
   useFont(u8g2_font_helvB08_tr);
   char hdr[40];
-  if (s_unitMi) snprintf(hdr, sizeof(hdr), "%.0fmi N%d", Rv, s_planeCount);
-  else snprintf(hdr, sizeof(hdr), "%.0fkm N%d", Rv, s_planeCount);
+  if (s_unitMi) snprintf(hdr, sizeof(hdr), "%.0fmi N%d", Rv, s_mappedCnt);
+  else snprintf(hdr, sizeof(hdr), "%.0fkm N%d", Rv, s_mappedCnt);
   txtC(hdr, 27, C_GREEN);
 }
 
@@ -178,6 +222,7 @@ static void drawRadarBase() {
   drawRings();
   drawAirports(rangeKm());
   computeMapped();
+  drawTrails();
   drawMarkers();
   drawLabels();
   if (s_animSweep) drawWedge(s_sweep, false);
@@ -192,6 +237,7 @@ static void drawSweepStep(float oldSweep, float newSweep) {
   drawRings();
   drawAirports(rangeKm());
   computeMapped(); // dead-reckon live positions so aircraft glide smoothly
+  drawTrails();    // comet tails, drawn under the markers
   drawMarkers();
   drawLabels();
   drawWedge(newSweep, false);  // draw the fan where it is now

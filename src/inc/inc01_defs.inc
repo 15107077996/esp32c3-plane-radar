@@ -57,7 +57,7 @@
 #define C_DKBLUE 0x0210
 
 // ---------------- version ----------------
-#define FW_VER "1.4.4-c3"
+#define FW_VER "1.4.5-c3"
 #define CFG_VER 108
 // Manual home location: Ganzhou Nankang District (district govt 25.6614N 114.7650E).
 // IP geolocation on this network wrongly resolves to Beijing, so manual mode is default.
@@ -70,7 +70,7 @@
 // Plane API template. {lat} {lon} {nm} are replaced before the request, so a
 // user can point the radar at another feed without rebuilding.
 #define DEF_PLANE_API "https://opendata.adsb.fi/api/v3/lat/{lat}/lon/{lon}/dist/{nm}"
-#define MAX_PLANES 40
+#define MAX_PLANES 60
 #define MAX_LABELS 3
 // Upper bound only: the buffer is allocated to the exact tile Content-Length,
 // so the real footprint is ~17KB instead of this figure.
@@ -148,6 +148,18 @@ static unsigned long s_pageEnterMs = 0;
 static Plane s_planesNew[MAX_PLANES];   // shadow buffer written by the task
 static volatile int s_planesNewN = -1;  // -1 idle, -2 failed, >=0 ready
 static volatile bool s_planeTask = false;
+
+// Trail history: every TRAIL_SAMPLE_MS a dead-reckoned position is appended to
+// the aircraft's ring buffer, so each icon carries a short comet tail of where
+// it actually came from (about 5 minutes of flight at the default cadence).
+#define TRAIL_N 12
+#define TRAIL_SAMPLE_MS 25000
+#define TRAIL_MAX_DRAW 24
+struct TrailPt { float lat; float lon; };
+static TrailPt s_trail[MAX_PLANES][TRAIL_N];
+static uint8_t s_trailN[MAX_PLANES];    // valid points, <= TRAIL_N
+static uint8_t s_trailHead[MAX_PLANES]; // next write slot
+static unsigned long s_trailMs = 0;
 
 // ---------------- weather ----------------
 struct DayWx {

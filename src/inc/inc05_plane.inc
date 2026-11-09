@@ -24,7 +24,7 @@ static void planeLive(int i, unsigned long now, double &la, double &lo) {
   Plane &p = s_planes[i];
   float dt = (now - p.baseMs) / 1000.0f; // seconds since fix
   if (dt < 0) dt = 0;
-  if (dt > 60) dt = 60;                  // cap extrapolation window
+  if (dt > 120) dt = 120;                // survive one missed 60 s fetch
   if (p.gs > 1.0f && dt > 0) {
     double km = (p.gs * 1.852) * (dt / 3600.0); // knots -> km/h * hours
     destPoint(p.lat, p.lon, (float)p.head, km, la, lo);
@@ -32,6 +32,35 @@ static void planeLive(int i, unsigned long now, double &la, double &lo) {
     la = p.lat;
     lo = p.lon;
   }
+}
+
+// Append one position to the aircraft's trail ring buffer.
+static void trailPush(int i, double la, double lo) {
+  int h = s_trailHead[i];
+  if (h < 0 || h >= TRAIL_N) h = 0;
+  s_trail[i][h].lat = (float)la;
+  s_trail[i][h].lon = (float)lo;
+  s_trailHead[i] = (uint8_t)((h + 1) % TRAIL_N);
+  if (s_trailN[i] < TRAIL_N) s_trailN[i]++;
+}
+
+// Sample every trail once per TRAIL_SAMPLE_MS while the radar page is open.
+static void trailSample(unsigned long now) {
+  if (s_trailMs != 0 && now - s_trailMs < TRAIL_SAMPLE_MS) return;
+  s_trailMs = now;
+  for (int i = 0; i < s_planeCount; i++) {
+    double la, lo;
+    planeLive(i, now, la, lo);
+    trailPush(i, la, lo);
+  }
+}
+
+// Two entries describe the same aircraft when the callsign matches. Anonymous
+// targets carry "????", which says nothing, so they never match.
+static bool sameCall(const Plane &a, const Plane &b) {
+  if (a.call[0] == 0 || b.call[0] == 0) return false;
+  if (!strcmp(a.call, "????")) return false;
+  return strcmp(a.call, b.call) == 0;
 }
 
 // Live distance from the center to the extrapolated position.
@@ -232,8 +261,39 @@ static bool adoptPlanes() {
   s_planesNewN = -1;
   if (n <= 0) return false; // failed or empty: keep what is already on screen
   if (n > MAX_PLANES) n = MAX_PLANES;
+  // The list is re-sorted by distance on every fetch, so a plane changes index.
+  // Match by callsign first and hand its trail over, otherwise the tail would
+  // restart at every fetch and aircraft would look pinned in place.
+  static uint8_t srcOf[MAX_PLANES];
+  for (int j = 0; j < n; j++) {
+    srcOf[j] = 255;
+    for (int i = 0; i < s_planeCount; i++) {
+      if (sameCall(s_planes[i], s_planesNew[j])) { srcOf[j] = (uint8_t)i; break; }
+    }
+  }
+  for (int j = 0; j < n; j++) {
+    int src = srcOf[j];
+    if (src == 255 || src >= MAX_PLANES || src >= s_planeCount) {
+      s_trailN[j] = 0;
+      s_trailHead[j] = 0;
+      continue;
+    }
+    TrailPt keep[TRAIL_N];
+    memcpy(keep, s_trail[src], sizeof(keep));
+    memcpy(s_trail[j], keep, sizeof(keep));
+    s_trailN[j] = s_trailN[src];
+    s_trailHead[j] = s_trailHead[src] % TRAIL_N;
+    if (s_trailN[j] > TRAIL_N) s_trailN[j] = TRAIL_N;
+  }
   memcpy(s_planes, s_planesNew, sizeof(Plane) * n);
   s_planeCount = n;
+  // Anchor the carried-over tail at the freshly received fix.
+  unsigned long now = millis();
+  for (int i = 0; i < n; i++) {
+    double la, lo;
+    planeLive(i, now, la, lo);
+    trailPush(i, la, lo);
+  }
   // The 60 s clock was already started when this fetch began; restarting it
   // here would let the next fetch fire as soon as this one lands, which is how
   // TLS ended up occupying the radio almost continuously.
