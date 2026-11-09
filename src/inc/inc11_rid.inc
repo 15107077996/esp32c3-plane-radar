@@ -22,6 +22,7 @@ static bool s_ridWebHooked = false;
 static unsigned long s_ridLastPoll = 0;
 static bool s_ridBleWant = true;
 static bool s_ridWifiWant = true;
+static bool s_ridBleTaskRun = false;
 static bool s_ridOffReq = false;
 static unsigned long s_ridWantMs = 0;
 static unsigned long s_ridHbdMs = 0;
@@ -216,6 +217,31 @@ static void ridWifiCb(void *buf, wifi_promiscuous_pkt_type_t type) {
   ridWifiFrame(p->payload, p->rx_ctrl.sig_len);
 }
 
+static void ridBleTask(void *arg) {
+  Serial.printf("[rid] s4a task up heap=%u\n", (unsigned)ESP.getFreeHeap());
+  delay(400);
+  NimBLEDevice::init("PlaneRadar-RID");
+  Serial.printf("[rid] s5 ble stack up heap=%u max=%u\n",
+                (unsigned)ESP.getFreeHeap(), (unsigned)ESP.getMaxAllocHeap());
+  delay(100);
+  NimBLEScan *sc = NimBLEDevice::getScan();
+  Serial.printf("[rid] s5a getScan heap=%u\n", (unsigned)ESP.getFreeHeap());
+  delay(60);
+  sc->setAdvertisedDeviceCallbacks(s_ridCb, true);
+  Serial.println("[rid] s5b cb set");
+  delay(60);
+  sc->setActiveScan(false);
+  sc->setInterval(320);
+  sc->setWindow(80);
+  Serial.println("[rid] s5c params set itvl=320 win=80");
+  delay(60);
+  sc->start(0, false);
+  Serial.printf("[rid] s5d start done heap=%u\n", (unsigned)ESP.getFreeHeap());
+  s_ridBle = true;
+  Serial.printf("[rid] s6 ble scan running heap=%u\n", (unsigned)ESP.getFreeHeap());
+  vTaskDelete(NULL);
+}
+
 static void ridStart() {
   if (s_ridOn || !s_ridWant) return;
   if (s_planeTask && millis() - s_ridWantMs < 30000UL) return;
@@ -223,12 +249,16 @@ static void ridStart() {
   Serial.println("[rid] s1 release png");
   releasePngBuf();
 
-  Serial.println("[rid] s2 wifi ap");
-  WiFi.mode(WIFI_AP);
-  delay(60);
+  // ESP32-C3 是单核芯片；纯 AP 模式下 WiFi/BT 共存拿不到射频时间片，
+  // ble_gap_disc 会永久等在 HCI 命令完成事件上。侦测期间保留 AP_STA
+  // （STA 不连任何 AP），共存才成立。
+  Serial.println("[rid] s2 wifi ap+sta");
+  WiFi.mode(WIFI_AP_STA);
+  WiFi.disconnect();
+  delay(120);
   WiFi.softAP("PlaneRadar-Setup", NULL, RID_CHANNEL);
   esp_wifi_set_channel(RID_CHANNEL, WIFI_SECOND_CHAN_NONE);
-  Serial.println("[rid] s3 ap up, channel set");
+  Serial.printf("[rid] s3 ap up ch%d mode=%d\n", RID_CHANNEL, (int)WiFi.getMode());
 
   s_ridQHead = 0;
   s_ridQTail = 0;
@@ -245,7 +275,7 @@ static void ridStart() {
   // 打开，WiFi 与 BLE 才能共享射频。
   Serial.println("[rid] s3b modem sleep on");
   esp_wifi_set_ps(WIFI_PS_MIN_MODEM);
-  delay(80);
+  delay(200);
   {
     wifi_ps_type_t ps = WIFI_PS_NONE;
     esp_wifi_get_ps(&ps);
@@ -253,31 +283,16 @@ static void ridStart() {
   }
 
   if (s_ridBleWant) {
-    Serial.printf("[rid] s4 ble init heap=%u max=%u\n",
+    Serial.printf("[rid] s4 ble task start heap=%u max=%u\n",
                   (unsigned)ESP.getFreeHeap(), (unsigned)ESP.getMaxAllocHeap());
     if (!s_ridCb) s_ridCb = new RidScanCb();
-    NimBLEDevice::init("PlaneRadar-RID");
-    Serial.printf("[rid] s5 ble stack up heap=%u max=%u\n",
-                  (unsigned)ESP.getFreeHeap(), (unsigned)ESP.getMaxAllocHeap());
-    delay(20);
-    NimBLEScan *sc = NimBLEDevice::getScan();
-    Serial.printf("[rid] s5a getScan heap=%u\n", (unsigned)ESP.getFreeHeap());
-    delay(20);
-    sc->setAdvertisedDeviceCallbacks(s_ridCb, true);
-    Serial.println("[rid] s5b cb set");
-    delay(20);
-    sc->setActiveScan(false);
-    sc->setInterval(160);
-    sc->setWindow(80);
-    Serial.println("[rid] s5c params set itvl=160 win=80");
-    delay(20);
-    sc->start(0, false);
-    Serial.printf("[rid] s5d start done heap=%u\n", (unsigned)ESP.getFreeHeap());
-    delay(20);
-    s_ridBle = true;
-    Serial.printf("[rid] s6 ble scan running heap=%u\n", (unsigned)ESP.getFreeHeap());
+    if (!s_ridBleTaskRun) {
+      s_ridBleTaskRun = true;
+      xTaskCreatePinnedToCore(ridBleTask, "ridble", 4096, NULL, 1, NULL, 0);
+    }
   }
 
+  delay(300);
   if (s_ridWifiWant) {
     wifi_promiscuous_filter_t pf;
     pf.filter_mask = WIFI_PROMIS_FILTER_MASK_MGMT;
@@ -310,6 +325,7 @@ static void ridStop() {
     s_ridBle = false;
     Serial.println("[rid] t2 ble down");
   }
+  s_ridBleTaskRun = false;
   s_ridOn = false;
   s_ridCount = 0;
   WiFi.mode(WIFI_AP_STA);
