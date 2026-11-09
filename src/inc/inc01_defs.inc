@@ -57,7 +57,7 @@
 #define C_DKBLUE 0x0210
 
 // ---------------- version ----------------
-#define FW_VER "1.4.5-c3"
+#define FW_VER "1.4.6-c1"
 #define CFG_VER 108
 // Manual home location: Ganzhou Nankang District (district govt 25.6614N 114.7650E).
 // IP geolocation on this network wrongly resolves to Beijing, so manual mode is default.
@@ -80,9 +80,9 @@
 #define RAIN_FRAMES 3
 
 // ---------------- screens ----------------
-// Clock, planes, forecast, rain, self-check/about. Short press cycles all five.
-enum { SCR_CLOCK = 0, SCR_PLANES = 1, SCR_FORECAST = 2, SCR_RAIN = 3, SCR_ABOUT = 4 };
-#define SCR_N 5
+// Clock, planes, forecast, rain, self-check/about, drone RID. Short press cycles.
+enum { SCR_CLOCK = 0, SCR_PLANES = 1, SCR_FORECAST = 2, SCR_RAIN = 3, SCR_ABOUT = 4, SCR_RID = 5 };
+#define SCR_N 6
 
 // ---------------- ranges (7 steps) ----------------
 // ADS-B coverage around Nankang is sparse: the nearest aircraft is often 200km+
@@ -200,6 +200,20 @@ static bool s_animReady = false;
 static int s_animFrame = 0;
 static unsigned long s_animMs = 0;
 
+// ---------------- drone RID (inc11_rid.inc) ----------------
+// State lives here because the web handlers in inc02_util.inc are compiled
+// before the detector itself and need to read it.
+#define RID_MAX 12
+static bool s_ridOn = false;      // listener running (station off, AP only)
+static bool s_ridWant = false;    // /rid web page asked to keep it running
+static bool s_ridBle = false;     // BLE host is up
+static int s_ridCount = 0;        // drones in the table
+static int s_ridFrames = 0;       // decoded messages since start
+static int s_ridBleN = 0;         // BLE advertisements seen
+static int s_ridWifiN = 0;        // beacon frames with the ASTM IE
+static int s_ridOuiLog = 0;       // unknown vendor OUIs logged (max 6)
+static unsigned long s_ridStartMs = 0;
+
 // ---------------- forward --------------
 static void renderClock();
 static void drawPlanes(float sweep);
@@ -216,3 +230,9 @@ static void drawWxIcon(int cx, int cy, int code, int s);
 static const char *wmoZh(int code);
 static void startWeb();
 static void webLoop();
+// Drone RID listener (inc11_rid.inc): passive BLE + 802.11 beacon decoding.
+static void ridStart();
+static void ridStop();
+static void ridTick(unsigned long now);
+static void drawRid();
+static void ridJson(String &out);
