@@ -48,7 +48,15 @@ static void enterPage(int page) {
     rainRefresh();
   } else if (page == SCR_ABOUT) {
     drawAbout();
+  } else if (page == SCR_RID) {
+    if (!s_ridOn) {
+      s_ridWant = false; // entering by key: the scan stops when the page is left
+      ridStart();
+    }
+    drawRid();
   }
+  // Leaving the detector page hands the radio back unless the web page owns it.
+  if (page != SCR_RID && s_ridOn && !s_ridWant) ridStop();
   // Drop any press edge that accumulated while the (possibly blocking) page built.
   buttonResync();
 }
@@ -117,6 +125,7 @@ static void tickClock() {
   }
 }
 static void tickPlanes(unsigned long now) {
+  if (s_ridOn) return; // the detector owns the radio; no TLS while it runs
   // A finished background fetch is adopted between frames, never mid-draw.
   if (adoptPlanes()) drawRadarBase();
   // Feed the trail ring buffers at a fixed cadence, independent of the fetch,
@@ -143,6 +152,7 @@ static void tickPlanes(unsigned long now) {
     fetchPlanesAsync();
 }
 static void tickForecast(unsigned long now) {
+  if (s_ridOn) return;
   if ((!s_metOk && now - s_metTryMs >= 30000) ||
       (s_metOk && now - s_metMs >= 360000)) {
     s_metTryMs = now;
@@ -151,6 +161,7 @@ static void tickForecast(unsigned long now) {
   }
 }
 static void tickRain(unsigned long now) {
+  if (s_ridOn) return;
   // While the background plane fetch holds a TLS session there is not enough
   // contiguous heap for the 256x256 tile decoder; wait for it to finish.
   if (s_planeTask) return;
@@ -160,6 +171,18 @@ static void tickRain(unsigned long now) {
     rainRefresh();
   } else {
     rainAnimTick(now);
+  }
+}
+
+// ---------------- drone RID page ----------------
+// Redraw once a second (the table changes far slower than the radar sweep) and
+// restart the listener if the web page still wants it after a reboot.
+static unsigned long s_ridDrawMs = 0;
+static void tickRid(unsigned long now) {
+  if (s_ridWant && !s_ridOn && now - s_ridStartMs > 60000) ridStart();
+  if (now - s_ridDrawMs >= 1000) {
+    s_ridDrawMs = now;
+    drawRid();
   }
 }
 
@@ -278,12 +301,14 @@ void loop() {
   unsigned long now = millis();
   handleButton();
   webLoop();
+  ridTick(now); // drains the radio queue even when the web page is the viewer
   switch (s_screen) {
     case SCR_CLOCK: tickClock(); break;
     case SCR_PLANES: tickPlanes(now); break;
     case SCR_FORECAST: tickForecast(now); break;
     case SCR_RAIN: tickRain(now); break;
     case SCR_ABOUT: break;
+    case SCR_RID: tickRid(now); break;
   }
   delay(20);
 }
