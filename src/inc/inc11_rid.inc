@@ -17,6 +17,10 @@
 #define RID_CHANNEL 6          // 2.4 GHz channel most RID beacons sit on
 #define RID_STALE_MS 45000UL   // drop an entry that stopped broadcasting
 #define RID_QUEUE_N 8          // messages copied out of the radio callbacks
+
+static void ridPage();            // web handler, defined at the bottom
+static bool s_ridWebHooked = false;
+
 // One detected drone. Kept small: 12 of them plus the shared buffers have to
 // fit beside the web server and the TLS client on a 400 KB part.
 struct RidDrone {
@@ -286,6 +290,15 @@ static float ridDistKm(const RidDrone &d) {
 }
 
 static void ridTick(unsigned long now) {
+  // Attach the web routes once the server exists. startWeb() is compiled earlier
+  // (inc02_util.inc), but WebServer accepts new handlers at any time, so the
+  // whole RID web UI can live here and inc02_util.inc stays untouched.
+  if (!s_ridWebHooked && s_srv) {
+    s_srv->on("/rid", HTTP_GET, ridPage);
+    s_srv->on("/rid.json", HTTP_GET, ridPage);
+    s_ridWebHooked = true;
+    Serial.println("[rid] web routes /rid /rid.json");
+  }
   if (!s_ridOn) return;
   while (s_ridQTail != s_ridQHead) {
     RidMsg *q = &s_ridQ[s_ridQTail];
@@ -410,4 +423,71 @@ static void ridJson(String &out) {
     out += buf;
   }
   out += "]}";
+}
+
+// ---- web page -------------------------------------------------------------
+// /rid        the phone page (mode buttons + live table)
+// /rid.json   the same data as JSON, polled every 2 s by the page itself
+static const char *RID_JS =
+    "var SMS=['未声明','地面','空中','紧急'];";
+    "function pv(v){return (v===undefined||v===null||v==='')?'-':v;}";
+    "function st(){fetch('/rid.json',{cache:'no-store'}).then(function(r){return r.json();})";
+    ".then(function(d){";
+    "var s=document.getElementById('st');";
+    "s.textContent=(d.on?'侦测中':'未开启')+' | BLE '+d.ble+' 帧 | Beacon '+d.wifi";
+    "+' 帧 | 解码 '+d.frames+' 条 | '+d.n+' 架';";
+    "var tb=document.getElementById('tb');tb.innerHTML='';";
+    "(d.list||[]).forEach(function(o){";
+    "var c=document.createElement('div');c.className='rcard';";
+    "var t=document.createElement('div');t.className='rt';";
+    "t.textContent=pv(o.id||o.mac);c.appendChild(t);";
+    "function row(k,v){var p=document.createElement('div');p.className='rr';";
+    "p.textContent=k+'：'+pv(v);c.appendChild(p);}";
+    "row('状态 / 机型',(SMS[o.st]||'未知')+' · '+pv(o.ua));";
+    "row('距离',o.km>0?o.km+' km':'-');";
+    "row('高度 (相对地面)',o.alt>-1000?o.alt+' m ('+(o.h>-1000?o.h+' m':'-')+')':'-');";
+    "row('速度 / 航向',o.spd>=0?o.spd+' m/s · '+o.dir+'°':'-');";
+    "row('无人机位置',o.la?o.la+', '+o.lo:'未广播');";
+    "row('操作者ID',o.op||'未广播');";
+    "row('操作者位置',o.ola?o.ola+', '+o.olo:'未广播');";
+    "row('信号 / 方式',pv(o.rssi)+' dBm · '+(o.tr==2?'WiFi Beacon':'BLE'));";
+    "row('更新 / 来源',o.age+' 秒前 · '+pv(o.mac));";
+    "tb.appendChild(c);});";
+    "if(!(d.list||[]).length){var e=document.createElement('div');e.className='rcard';";
+    "e.textContent=d.on?'暂未收到 RID 广播：把设备放在开阔处，等无人机通电/起飞后再看':'侦测未开启，点上面的按钮';";
+    "tb.appendChild(e);}";
+    "}).catch(function(){});}";
+    "setInterval(st,2000);st();";
+
+static void ridPage() {
+  if (s_srv->uri() == "/rid.json") {
+    String js;
+    ridJson(js);
+    s_srv->send(200, "application/json; charset=utf-8", js);
+    return;
+  }
+  if (s_srv->hasArg("on")) {
+    s_ridWant = true;
+    if (!s_ridOn) ridStart();
+  }
+  if (s_srv->hasArg("off")) {
+    s_ridWant = false;
+    ridStop();
+  }
+  String h = pageHead("无人机侦测", "PlaneRadar-Setup");
+  h += "<style>.rcard{background:#fff;border:1px solid #dde3ec;border-radius:10px;";
+  h += "padding:10px 12px;margin:0 0 10px;font-size:14px;color:#28303b}";
+  h += ".rt{font-size:16px;color:#1f6fd0;font-weight:600;margin-bottom:4px}";
+  h += ".rr{line-height:1.9}</style>";
+  h += "<div class=kv id=st>读取中…</div>";
+  h += "<button class=btn onclick=\"location.href='/rid?on=1'\">开启侦测模式</button>";
+  h += "<button class=btn style='background:#6b7280' ";
+  h += "onclick=\"location.href='/rid?off=1'\">停止侦测，恢复联网</button>";
+  h += "<div class=hint>开启后设备暂停联网（航班与云图停更），只保留热点 ";
+  h += "PlaneRadar-Setup 和本页；手机连该热点后访问 192.168.4.1/rid。停止后自动恢复联网。</div>";
+  h += "<div id=tb></div>";
+  h += RID_JS;
+  h += "<div class=foot>被动接收 ASTM F3411 / GB 46750 广播 RID，不发射任何信号</div>";
+  h += "</body></html>";
+  s_srv->send(200, "text/html; charset=utf-8", h);
 }
