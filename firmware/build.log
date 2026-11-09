@@ -41,7 +41,7 @@ Collecting bitarray<4.0,>=3.0.0 (from bitstring~=4.3.1)
 Collecting pycparser (from cffi>=1.14->cryptography~=45.0.3)
   Using cached pycparser-3.12-py3-none-any.whl.metadata (9.7 kB)
 Downloading cryptography-45.0.7-cp311-abi3-manylinux_2_34_x86_64.whl (4.5 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 96.9 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 27.7 MB/s  0:00:00
 Downloading ecdsa-0.19.2-py2.py3-none-any.whl (150 kB)
 Downloading bitstring-4.3.1-py3-none-any.whl (71 kB)
 Using cached reedsolo-1.7.0-py3-none-any.whl (32 kB)
@@ -132,107 +132,494 @@ Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_cleardisplay.c.o
 Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_d_memory.c.o
 Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_d_setup.c.o
 Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_font.c.o
-In file included from .pio/libdeps/esp32c3/PNGdec/src/PNGdec.h:34,
-                 from src/inc/inc01_defs.inc:12,
-                 from src/main.cpp:3:
-.pio/libdeps/esp32c3/PNGdec/src/zutil.h:37:17: error: expected unqualified-id before 'static'
- #  define local static
-                 ^~~~~~
-.pio/libdeps/esp32c3/PNGdec/src/zutil.h:37:17: note: in definition of macro 'local'
- #  define local static
-                 ^~~~~~
-In file included from src/main.cpp:13:
-src/inc/inc11_rid.inc: In member function 'virtual void RidScanCb::onResult(NimBLEAdvertisedDevice*)':
-src/inc/inc11_rid.inc:180:37: error: conversion from 'uint8_t*' {aka 'unsigned char*'} to non-scalar type 'std::__cxx11::string' {aka 'std::__cxx11::basic_string<char>'} requested
-     std::string pl = dev->getPayload();
-                      ~~~~~~~~~~~~~~~^~
-src/inc/inc11_rid.inc: At global scope:
-src/inc/inc11_rid.inc:433:5: error: expected unqualified-id before string constant
-     "function pv(v){return (v===undefined||v===null||v==='')?'-':v;}";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:434:5: error: expected unqualified-id before string constant
-     "function st(){fetch('/rid.json',{cache:'no-store'}).then(function(r){return r.json();})";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:435:5: error: expected unqualified-id before string constant
-     ".then(function(d){";
-     ^~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:436:5: error: expected unqualified-id before string constant
-     "var s=document.getElementById('st');";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:437:5: error: expected unqualified-id before string constant
-     "s.textContent=(d.on?'侦测中':'未开启')+' | BLE '+d.ble+' 帧 | Beacon '+d.wifi";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:438:5: error: expected unqualified-id before string constant
-     "+' 帧 | 解码 '+d.frames+' 条 | '+d.n+' 架';";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:439:5: error: expected unqualified-id before string constant
-     "var tb=document.getElementById('tb');tb.innerHTML='';";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:440:5: error: expected unqualified-id before string constant
-     "(d.list||[]).forEach(function(o){";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:441:5: error: expected unqualified-id before string constant
-     "var c=document.createElement('div');c.className='rcard';";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:442:5: error: expected unqualified-id before string constant
-     "var t=document.createElement('div');t.className='rt';";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:443:5: error: expected unqualified-id before string constant
-     "t.textContent=pv(o.id||o.mac);c.appendChild(t);";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:444:5: error: expected unqualified-id before string constant
-     "function row(k,v){var p=document.createElement('div');p.className='rr';";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:445:5: error: expected unqualified-id before string constant
-     "p.textContent=k+'：'+pv(v);c.appendChild(p);}";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:446:5: error: expected unqualified-id before string constant
-     "row('状态 / 机型',(SMS[o.st]||'未知')+' · '+pv(o.ua));";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:447:5: error: expected unqualified-id before string constant
-     "row('距离',o.km>0?o.km+' km':'-');";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:448:5: error: expected unqualified-id before string constant
-     "row('高度 (相对地面)',o.alt>-1000?o.alt+' m ('+(o.h>-1000?o.h+' m':'-')+')':'-');";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:449:5: error: expected unqualified-id before string constant
-     "row('速度 / 航向',o.spd>=0?o.spd+' m/s · '+o.dir+'°':'-');";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:450:5: error: expected unqualified-id before string constant
-     "row('无人机位置',o.la?o.la+', '+o.lo:'未广播');";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:451:5: error: expected unqualified-id before string constant
-     "row('操作者ID',o.op||'未广播');";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:452:5: error: expected unqualified-id before string constant
-     "row('操作者位置',o.ola?o.ola+', '+o.olo:'未广播');";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:453:5: error: expected unqualified-id before string constant
-     "row('信号 / 方式',pv(o.rssi)+' dBm · '+(o.tr==2?'WiFi Beacon':'BLE'));";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:454:5: error: expected unqualified-id before string constant
-     "row('更新 / 来源',o.age+' 秒前 · '+pv(o.mac));";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:455:5: error: expected unqualified-id before string constant
-     "tb.appendChild(c);});";
-     ^~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:456:5: error: expected unqualified-id before string constant
-     "if(!(d.list||[]).length){var e=document.createElement('div');e.className='rcard';";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:457:5: error: expected unqualified-id before string constant
-     "e.textContent=d.on?'暂未收到 RID 广播：把设备放在开阔处，等无人机通电/起飞后再看':'侦测未开启，点上面的按钮';";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-In file included from src/main.cpp:13:
-src/inc/inc11_rid.inc:458:5: error: expected unqualified-id before string constant
-     "tb.appendChild(e);}";
-     ^~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:459:5: error: expected unqualified-id before string constant
-     "}).catch(function(){});}";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~
-src/inc/inc11_rid.inc:460:5: error: expected unqualified-id before string constant
-     "setInterval(st,2000);st();";
-     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_fonts.c.o
 Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_hvline.c.o
-*** [.pio/build/esp32c3/src/main.cpp.o] Error 1
-========================= [FAILED] Took 58.95 seconds =========================
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_input_value.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_intersection.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_kerning.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_line.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_ll_hvline.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_message.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_polygon.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_selection_list.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_setup.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8log.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8log_u8g2.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8log_u8x8.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_8x8.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_byte.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_cad.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_capture.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_a2printer.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ch1120.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_gp1247ai.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_gp1287ai.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_gp1294ai.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_gu800.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_hd44102.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_il3820_296x128.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ist3020.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ist3088.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ist7920.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ks0108.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_lc7981.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ld7032_60x32.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ls013b7dh03.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_max7219.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_pcd8544_84x48.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_pcf8812.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_pcf8814_hx1230.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_s1d15300.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_s1d15721.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_s1d15e06.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_sbn1661.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_sed1330.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_sh1106_64x32.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_sh1106_72x40.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_sh1107.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_sh1108.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_sh1122.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1305.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1306_128x32.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1306_128x64_noname.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1306_2040x16.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1306_48x64.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1306_64x32.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1306_64x48.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1306_72x40.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1306_96x16.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1306_96x40.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1309.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1312.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1315_128x64_noname.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1316.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1317.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1318.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1320.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1322.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1325.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1326.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1327.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1329.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1362.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1362z.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1363.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1606_172x72.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_ssd1607_200x200.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_st7301.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_st7302.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_st7305.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_st7511.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_st75160.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_st75161.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_st75256.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_st7528.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_st75320.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_st7539.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_st7565.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_st7567.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_st7571.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_st7586s_erc240160.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_st7586s_jlx320160.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_st7586s_jlx384160.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_st7586s_md240128.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_st7586s_s028hn118a.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_st7586s_ymc240160.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_st7588.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_st7920.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_t6963.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_uc1601.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_uc1604.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_uc1608.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_uc1609.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_uc1610.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_uc1611.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_uc1617.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_uc1628.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_uc1638.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_uc1698.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_uc1701_dogs102.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_d_uc1701_mini12864.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_debounce.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_display.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_fonts.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_gpio.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_input_value.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_message.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_selection_list.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_setup.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_string.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_u16toa.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_u8toa.c.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_DataBus.cpp.o
+Archiving .pio/build/esp32c3/libb64/libU8g2.a
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_G.cpp.o
+Indexing .pio/build/esp32c3/libb64/libU8g2.a
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_GFX.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_GFX_Library.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_TFT.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_TFT_18bit.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/canvas/Arduino_Canvas.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/canvas/Arduino_Canvas_3bit.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/canvas/Arduino_Canvas_Indexed.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/canvas/Arduino_Canvas_Mono.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_AVRPAR16.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_AVRPAR8.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_DUEPAR16.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_ESP32LCD16.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_ESP32LCD8.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_ESP32PAR16.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_ESP32PAR16Q.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_ESP32PAR16QQ.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_ESP32PAR8.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_ESP32PAR8Q.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_ESP32PAR8QQ.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_ESP32PAR8QQQ.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_ESP32QSPI.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_ESP32RGBPanel.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_ESP32S2PAR16.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_ESP32S2PAR16Q.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_ESP32S2PAR8.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_ESP32S2PAR8Q.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_ESP32SPI.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_ESP32SPIDMA.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_ESP8266SPI.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_HWSPI.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_NRFXSPI.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_RPiPicoPAR16.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_RPiPicoPAR8.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_RPiPicoSPI.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_RTLPAR8.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_STM32PAR8.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_SWPAR16.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_SWPAR8.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_SWSPI.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_UNOPAR8.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_Wire.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_XCA9554SWSPI.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_XL9535SWSPI.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/databus/Arduino_mbedSPI.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_AXS15231B.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_CO5300.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_GC9106.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_GC9107.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_GC9A01.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_HX8347C.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_HX8347D.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_HX8352C.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_HX8357A.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_HX8357B.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_HX8369A.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_ILI9225.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_ILI9331.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_ILI9341.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_ILI9342.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_ILI9481_18bit.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_ILI9486.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_ILI9486_18bit.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_ILI9488.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_ILI9488_18bit.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_ILI9488_3bit.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_ILI9806.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_JBT6K71.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_JD9613.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_NT35310.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_NT35510.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_NT39125.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_NV3023.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_NV3041A.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_OTM8009A.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_R61529.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_RGB_Display.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_RM67162.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_RM690B0.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_SEPS525.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_SH1106.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_SSD1283A.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_SSD1306.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_SSD1331.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_SSD1351.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_ST7735.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_ST7789.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_ST77916.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_ST7796.cpp.o
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/display/Arduino_WEA2012.cpp.o
+Compiling .pio/build/esp32c3/lib002/PNGdec/PNGdec.cpp.o
+Compiling .pio/build/esp32c3/lib002/PNGdec/adler32.c.o
+Compiling .pio/build/esp32c3/lib002/PNGdec/crc32.c.o
+Compiling .pio/build/esp32c3/lib002/PNGdec/infback.c.o
+Compiling .pio/build/esp32c3/lib002/PNGdec/inffast.c.o
+Compiling .pio/build/esp32c3/lib002/PNGdec/inflate.c.o
+Compiling .pio/build/esp32c3/lib002/PNGdec/inftrees.c.o
+Compiling .pio/build/esp32c3/lib002/PNGdec/zutil.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLE2904.cpp.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEAddress.cpp.o
+Archiving .pio/build/esp32c3/lib002/libPNGdec.a
+Indexing .pio/build/esp32c3/lib002/libPNGdec.a
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEAdvertisedDevice.cpp.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEAdvertising.cpp.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEBeacon.cpp.o
+Archiving .pio/build/esp32c3/libd74/libGFX Library for Arduino.a
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLECharacteristic.cpp.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEClient.cpp.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEDescriptor.cpp.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEDevice.cpp.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEEddystoneTLM.cpp.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEEddystoneURL.cpp.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEExtAdvertising.cpp.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEHIDDevice.cpp.o
+Indexing .pio/build/esp32c3/libd74/libGFX Library for Arduino.a
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLERemoteCharacteristic.cpp.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLERemoteDescriptor.cpp.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLERemoteService.cpp.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEScan.cpp.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLESecurity.cpp.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEServer.cpp.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEService.cpp.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEUUID.cpp.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEUtils.cpp.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/esp_port/esp-hci/src/esp_nimble_hci.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/esp_port/port/src/esp_nimble_mem.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/aes_decrypt.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/aes_encrypt.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/cbc_mode.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/ccm_mode.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/cmac_mode.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/ctr_mode.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/ctr_prng.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/ecc.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/ecc_dh.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/ecc_dsa.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/ecc_platform_specific.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/hmac.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/hmac_prng.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/sha256.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/utils.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/controller/src/ble_ll.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/controller/src/ble_ll_adv.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/controller/src/ble_ll_conn.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/controller/src/ble_ll_conn_hci.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/controller/src/ble_ll_ctrl.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/controller/src/ble_ll_dtm.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/controller/src/ble_ll_hci.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/controller/src/ble_ll_hci_ev.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/controller/src/ble_ll_iso.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/controller/src/ble_ll_rand.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/controller/src/ble_ll_resolv.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/controller/src/ble_ll_rfmgmt.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/controller/src/ble_ll_scan.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/controller/src/ble_ll_sched.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/controller/src/ble_ll_supp_cmd.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/controller/src/ble_ll_sync.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/controller/src/ble_ll_trace.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/controller/src/ble_ll_utils.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/controller/src/ble_ll_whitelist.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/drivers/nrf51/src/ble_hw.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/drivers/nrf51/src/ble_phy.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/drivers/nrf52/src/ble_hw.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/drivers/nrf52/src/ble_phy.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/drivers/nrf52/src/ble_phy_trace.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/access.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/adv.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/aes-ccm.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/app_keys.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/beacon.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/cdb.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/cfg.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/cfg_cli.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/cfg_srv.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/crypto.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/friend.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/glue.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/health_cli.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/health_srv.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/heartbeat.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/light_model.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/lpn.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/mesh.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/model_cli.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/model_srv.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/net.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/nodes.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/pb_adv.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/pb_gatt.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/prov.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/prov_device.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/provisioner.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/proxy.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/rpl.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/settings.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/shell.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/subnet.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/mesh/src/transport.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/services/ans/src/ble_svc_ans.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/services/bas/src/ble_svc_bas.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/services/dis/src/ble_svc_dis.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/services/gap/src/ble_svc_gap.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/services/gatt/src/ble_svc_gatt.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/services/ias/src/ble_svc_ias.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/services/ipss/src/ble_svc_ipss.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/services/lls/src/ble_svc_lls.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_att.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_att_clt.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_att_cmd.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_att_svr.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_eddystone.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_gap.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_gattc.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_gatts.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_gatts_lcl.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_hs.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_hs_adv.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_hs_atomic.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_hs_cfg.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_hs_conn.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_hs_flow.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_hs_hci.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_hs_hci_cmd.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_hs_hci_evt.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_hs_hci_util.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_hs_id.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_hs_log.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_hs_mbuf.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_hs_misc.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_hs_mqueue.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_hs_periodic_sync.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_hs_pvcy.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_hs_resolv.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_hs_shutdown.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_hs_startup.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_hs_stop.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_ibeacon.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_l2cap.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_l2cap_coc.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_l2cap_sig.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_l2cap_sig_cmd.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_monitor.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_sm.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_sm_alg.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_sm_cmd.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_sm_lgcy.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_sm_sc.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_store.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_store_util.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/src/ble_uuid.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/store/config/src/ble_store_config.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/store/config/src/ble_store_config_conf.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/store/config/src/ble_store_nvs.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/host/util/src/addr.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/nimble/transport/ram/src/ble_hci_ram.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/porting/nimble/src/endian.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/porting/nimble/src/hal_timer.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/porting/nimble/src/hal_uart.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/porting/nimble/src/mem.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/porting/nimble/src/nimble_port.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/porting/nimble/src/os_cputime.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/porting/nimble/src/os_cputime_pwr2.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/porting/nimble/src/os_mbuf.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/porting/nimble/src/os_mempool.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/porting/nimble/src/os_msys_init.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/porting/npl/freertos/src/nimble_port_freertos.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/porting/npl/freertos/src/npl_os_freertos.c.o
+Compiling .pio/build/esp32c3/lib989/WiFi/WiFi.cpp.o
+Compiling .pio/build/esp32c3/lib989/WiFi/WiFiAP.cpp.o
+Compiling .pio/build/esp32c3/lib989/WiFi/WiFiClient.cpp.o
+Archiving .pio/build/esp32c3/lib6ba/libNimBLE-Arduino.a
+Indexing .pio/build/esp32c3/lib6ba/libNimBLE-Arduino.a
+Compiling .pio/build/esp32c3/lib989/WiFi/WiFiGeneric.cpp.o
+Compiling .pio/build/esp32c3/lib989/WiFi/WiFiMulti.cpp.o
+Compiling .pio/build/esp32c3/lib989/WiFi/WiFiSTA.cpp.o
+Compiling .pio/build/esp32c3/lib989/WiFi/WiFiScan.cpp.o
+Compiling .pio/build/esp32c3/lib989/WiFi/WiFiServer.cpp.o
+Compiling .pio/build/esp32c3/lib989/WiFi/WiFiUdp.cpp.o
+Compiling .pio/build/esp32c3/lib552/WiFiClientSecure/WiFiClientSecure.cpp.o
+Compiling .pio/build/esp32c3/lib552/WiFiClientSecure/esp_crt_bundle.c.o
+Compiling .pio/build/esp32c3/lib552/WiFiClientSecure/ssl_client.cpp.o
+Compiling .pio/build/esp32c3/lib67b/HTTPClient/HTTPClient.cpp.o
+Archiving .pio/build/esp32c3/lib989/libWiFi.a
+Indexing .pio/build/esp32c3/lib989/libWiFi.a
+Compiling .pio/build/esp32c3/libe70/Preferences/Preferences.cpp.o
+Compiling .pio/build/esp32c3/lib7aa/FS/FS.cpp.o
+Archiving .pio/build/esp32c3/lib552/libWiFiClientSecure.a
+Indexing .pio/build/esp32c3/lib552/libWiFiClientSecure.a
+Compiling .pio/build/esp32c3/lib7aa/FS/vfs_api.cpp.o
+Archiving .pio/build/esp32c3/libe70/libPreferences.a
+Indexing .pio/build/esp32c3/libe70/libPreferences.a
+Compiling .pio/build/esp32c3/lib864/SPIFFS/SPIFFS.cpp.o
+Compiling .pio/build/esp32c3/lib4b6/Update/HttpsOTAUpdate.cpp.o
+Compiling .pio/build/esp32c3/lib4b6/Update/Updater.cpp.o
+Archiving .pio/build/esp32c3/lib7aa/libFS.a
+Indexing .pio/build/esp32c3/lib7aa/libFS.a
+Archiving .pio/build/esp32c3/lib67b/libHTTPClient.a
+Indexing .pio/build/esp32c3/lib67b/libHTTPClient.a
+Compiling .pio/build/esp32c3/lib1ce/WebServer/Parsing.cpp.o
+Compiling .pio/build/esp32c3/lib1ce/WebServer/WebServer.cpp.o
+Archiving .pio/build/esp32c3/lib864/libSPIFFS.a
+Indexing .pio/build/esp32c3/lib864/libSPIFFS.a
+Compiling .pio/build/esp32c3/lib1ce/WebServer/detail/mimetable.cpp.o
+Compiling .pio/build/esp32c3/FrameworkArduino/Esp.cpp.o
+Archiving .pio/build/esp32c3/lib4b6/libUpdate.a
+Indexing .pio/build/esp32c3/lib4b6/libUpdate.a
+Compiling .pio/build/esp32c3/FrameworkArduino/FirmwareMSC.cpp.o
+Compiling .pio/build/esp32c3/FrameworkArduino/FunctionalInterrupt.cpp.o
+Compiling .pio/build/esp32c3/FrameworkArduino/HWCDC.cpp.o
+Compiling .pio/build/esp32c3/FrameworkArduino/HardwareSerial.cpp.o
+Compiling .pio/build/esp32c3/FrameworkArduino/IPAddress.cpp.o
+Archiving .pio/build/esp32c3/lib1ce/libWebServer.a
+Indexing .pio/build/esp32c3/lib1ce/libWebServer.a
+Compiling .pio/build/esp32c3/FrameworkArduino/IPv6Address.cpp.o
+Compiling .pio/build/esp32c3/FrameworkArduino/MD5Builder.cpp.o
+Compiling .pio/build/esp32c3/FrameworkArduino/Print.cpp.o
+Compiling .pio/build/esp32c3/FrameworkArduino/Stream.cpp.o
+Compiling .pio/build/esp32c3/FrameworkArduino/StreamString.cpp.o
+Compiling .pio/build/esp32c3/FrameworkArduino/Tone.cpp.o
+Compiling .pio/build/esp32c3/FrameworkArduino/USB.cpp.o
+Compiling .pio/build/esp32c3/FrameworkArduino/USBCDC.cpp.o
+Compiling .pio/build/esp32c3/FrameworkArduino/USBMSC.cpp.o
+Compiling .pio/build/esp32c3/FrameworkArduino/WMath.cpp.o
+Compiling .pio/build/esp32c3/FrameworkArduino/WString.cpp.o
+Compiling .pio/build/esp32c3/FrameworkArduino/base64.cpp.o
+Compiling .pio/build/esp32c3/FrameworkArduino/cbuf.cpp.o
+Compiling .pio/build/esp32c3/FrameworkArduino/esp32-hal-adc.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/esp32-hal-bt.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/esp32-hal-cpu.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/esp32-hal-dac.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/esp32-hal-gpio.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/esp32-hal-i2c-slave.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/esp32-hal-i2c.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/esp32-hal-ledc.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/esp32-hal-matrix.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/esp32-hal-misc.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/esp32-hal-psram.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/esp32-hal-rgb-led.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/esp32-hal-rmt.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/esp32-hal-sigmadelta.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/esp32-hal-spi.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/esp32-hal-time.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/esp32-hal-timer.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/esp32-hal-tinyusb.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/esp32-hal-touch.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/esp32-hal-uart.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/firmware_msc_fat.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/libb64/cdecode.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/libb64/cencode.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/main.cpp.o
+Compiling .pio/build/esp32c3/FrameworkArduino/stdlib_noniso.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/wiring_pulse.c.o
+Compiling .pio/build/esp32c3/FrameworkArduino/wiring_shift.c.o
+Archiving .pio/build/esp32c3/libFrameworkArduino.a
+Indexing .pio/build/esp32c3/libFrameworkArduino.a
+Linking .pio/build/esp32c3/firmware.elf
+Retrieving maximum program size .pio/build/esp32c3/firmware.elf
+Checking size .pio/build/esp32c3/firmware.elf
+Advanced Memory Usage is available via "PlatformIO Home > Project Inspect"
+RAM:   [===       ]  34.3% (used 112396 bytes from 327680 bytes)
+Flash: [=====     ]  51.9% (used 1633778 bytes from 3145728 bytes)
+Building .pio/build/esp32c3/firmware.bin with action:
+  "$PYTHONEXE" "$OBJCOPY" --chip esp32c3 elf2image --flash_mode ${__get_board_flash_mode(__env__)} --flash_freq ${__get_board_f_image(__env__)} --flash_size 4MB --elf-sha256-offset 0xb0 -o $TARGET $SOURCES
+Building .pio/build/esp32c3/firmware.bin
+esptool.py v4.9.0
+Creating esp32c3 image...
+Merged 2 ELF sections
+Successfully created esp32c3 image.
+======================== [SUCCESS] Took 151.02 seconds ========================
