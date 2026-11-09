@@ -3,16 +3,9 @@
 //
 // Passive only: nothing is transmitted. Two transports are listened to:
 //   * Bluetooth LE advertisements carrying service data UUID 0xFFFA
-//     (legacy advertisements and BT5 extended advertisements alike)
 //   * 802.11 beacon / probe-response frames carrying the ASTM vendor specific
-//     information element (OUI FA:0B:BC), which is what most Chinese drones
-//     use now that GB 46750 is in force
-//
-// Every decoded message updates a small table keyed by the sender MAC. The
-// table feeds both the round screen page and the /rid web page.
+//     information element (OUI FA:0B:BC)
 // ============================================================================
-// PNGdec 的 zutil.h 把 local 定义成 static（C 写法），而 BLE 协议栈头文件里
-// 有个结构体字段就叫 local。
 #ifdef local
 #undef local
 #endif
@@ -241,11 +234,11 @@ static void ridStart() {
   s_ridWifiN = 0;
   s_ridOuiLog = 0;
 
-  // 真正的崩溃根因（PC 0x420aa039 落点经符号表为 coex_core_condition_check）：
-  // 该函数里的断言文案是 "Should enable WiFi modem sleep when both WiFi and
-  // Bluetooth are enabled"。平时为了消掉网页约 1 秒的连接延迟调了
-  // WiFi.setSleep(false)，共存条件因此不满足，使能 BT 控制器时直接 abort。
-  // 侦测期间把 modem sleep 打开即可让 WiFi 与 BLE 共享射频。
+  // 崩溃根因（PC 0x420aa039 经符号表落点是 coex_core_condition_check）：
+  // 该函数里的断言文案是 Should enable WiFi modem sleep when both WiFi and
+  // Bluetooth are enabled。平时为消掉网页约 1 秒连接延迟调了 WiFi.setSleep(false)，
+  // 共存条件因此不满足，使能 BT 控制器时直接 abort。侦测期间把 modem sleep
+  // 打开，WiFi 与 BLE 才能共享射频。
   Serial.println("[rid] s3b modem sleep on");
   esp_wifi_set_ps(WIFI_PS_MIN_MODEM);
   delay(80);
@@ -474,27 +467,27 @@ static const char *RID_JS =
     "var s=document.getElementById('st');"
     "s.textContent=(d.on?'侦测中':'未开启')+' | BLE '+d.ble+' 帧 | Beacon '+d.wifi"
     "+' 帧 | 解码 '+d.frames+' 条 | '+d.n+' 架 | 已跑 '+d.up+' 秒';"
-    "var tb=document.getElementById('tb');tb.innerHTML='';";
+    "var tb=document.getElementById('tb');tb.innerHTML='';"
     "(d.list||[]).forEach(function(o){"
-    "var c=document.createElement('div');c.className='rcard';";
-    "var t=document.createElement('div');t.className='rt';";
-    "t.textContent=pv(o.id||o.mac);c.appendChild(t);";
-    "function row(k,v){var p=document.createElement('div');p.className='rr';";
-    "p.textContent=k+'：'+pv(v);c.appendChild(p);}";
-    "row('状态 / 机型',(SMS[o.st]||'未知')+' · '+pv(o.ua));";
-    "row('距离',o.km>0?o.km+' km':'-');";
-    "row('高度 (相对地面)',o.alt>-1000?o.alt+' m ('+(o.h>-1000?o.h+' m':'-')+')':'-');";
-    "row('速度 / 航向',o.spd>=0?o.spd+' m/s · '+o.dir+'°':'-');";
-    "row('无人机位置',o.la?o.la+', '+o.lo:'未广播');";
-    "row('操作者ID',o.op||'未广播');";
-    "row('操作者位置',o.ola?o.ola+', '+o.olo:'未广播');";
-    "row('信号 / 方式',pv(o.rssi)+' dBm · '+(o.tr==2?'WiFi Beacon':'BLE'));";
-    "row('更新 / 来源',o.age+' 秒前 · '+pv(o.mac));";
-    "tb.appendChild(c);});";
-    "if(!(d.list||[]).length){var e=document.createElement('div');e.className='rcard';";
-    "e.textContent=d.on?'暂未收到 RID 广播：把设备放在开阔处，等无人机通电/起飞后再看':'侦测未开启，点上面的按钮';";
-    "tb.appendChild(e);}";
-    "}).catch(function(){});}";
+    "var c=document.createElement('div');c.className='rcard';"
+    "var t=document.createElement('div');t.className='rt';"
+    "t.textContent=pv(o.id||o.mac);c.appendChild(t);"
+    "function row(k,v){var p=document.createElement('div');p.className='rr';"
+    "p.textContent=k+'：'+pv(v);c.appendChild(p);}"
+    "row('状态 / 机型',(SMS[o.st]||'未知')+' · '+pv(o.ua));"
+    "row('距离',o.km>0?o.km+' km':'-');"
+    "row('高度 (相对地面)',o.alt>-1000?o.alt+' m ('+(o.h>-1000?o.h+' m':'-')+')':'-');"
+    "row('速度 / 航向',o.spd>=0?o.spd+' m/s · '+o.dir+'°':'-');"
+    "row('无人机位置',o.la?o.la+', '+o.lo:'未广播');"
+    "row('操作者ID',o.op||'未广播');"
+    "row('操作者位置',o.ola?o.ola+', '+o.olo:'未广播');"
+    "row('信号 / 方式',pv(o.rssi)+' dBm · '+(o.tr==2?'WiFi Beacon':'BLE'));"
+    "row('更新 / 来源',o.age+' 秒前 · '+pv(o.mac));"
+    "tb.appendChild(c);});"
+    "if(!(d.list||[]).length){var e=document.createElement('div');e.className='rcard';"
+    "e.textContent=d.on?'暂未收到 RID 广播：把设备放在开阔处，等无人机通电/起飞后再看':'侦测未开启，点上面的按钮';"
+    "tb.appendChild(e);}"
+    "}).catch(function(){});}"
     "setInterval(st,2000);st();";
 
 static void ridPage() {
