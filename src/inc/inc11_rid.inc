@@ -447,7 +447,7 @@ static void ridJson(String &out) {
 // /rid        the phone page (mode buttons + live table)
 // /rid.json   the same data as JSON, polled every 2 s by the page itself
 static const char *RID_JS =
-    "var SMS=['未声明','地面','空中','紧急'];";
+    "var SMS=['未声明','地面','空中','紧急'];"
     "function pv(v){return (v===undefined||v===null||v==='')?'-':v;}"
     "function st(){fetch('/rid.json',{cache:'no-store'}).then(function(r){return r.json();})"
     ".then(function(d){"
