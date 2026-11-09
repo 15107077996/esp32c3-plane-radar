@@ -21,6 +21,7 @@ static void ridPage();
 static bool s_ridWebHooked = false;
 static unsigned long s_ridLastPoll = 0;
 static bool s_ridBleWant = true;
+static bool s_ridWifiWant = true;
 static bool s_ridOffReq = false;
 static unsigned long s_ridWantMs = 0;
 static unsigned long s_ridHbdMs = 0;
@@ -169,8 +170,11 @@ static void ridBlePayload(const uint8_t *pl, size_t plLen, const char *mac, int 
 
 class RidScanCb : public NimBLEAdvertisedDeviceCallbacks {
   void onResult(NimBLEAdvertisedDevice *dev) override {
-    std::string addr = dev->getAddress().toString();
-    ridBlePayload(dev->getPayload(), dev->getPayloadLength(), addr.c_str(), dev->getRSSI());
+    char addr[13];
+    const uint8_t *v = dev->getAddress().getNative();
+    snprintf(addr, sizeof(addr), "%02x:%02x:%02x:%02x:%02x:%02x",
+             v[0], v[1], v[2], v[3], v[4], v[5]);
+    ridBlePayload(dev->getPayload(), dev->getPayloadLength(), addr, dev->getRSSI());
   }
 };
 static RidScanCb *s_ridCb = nullptr;
@@ -253,23 +257,38 @@ static void ridStart() {
                   (unsigned)ESP.getFreeHeap(), (unsigned)ESP.getMaxAllocHeap());
     if (!s_ridCb) s_ridCb = new RidScanCb();
     NimBLEDevice::init("PlaneRadar-RID");
-    Serial.println("[rid] s5 ble stack up");
+    Serial.printf("[rid] s5 ble stack up heap=%u max=%u\n",
+                  (unsigned)ESP.getFreeHeap(), (unsigned)ESP.getMaxAllocHeap());
+    delay(20);
     NimBLEScan *sc = NimBLEDevice::getScan();
+    Serial.printf("[rid] s5a getScan heap=%u\n", (unsigned)ESP.getFreeHeap());
+    delay(20);
     sc->setAdvertisedDeviceCallbacks(s_ridCb, true);
+    Serial.println("[rid] s5b cb set");
+    delay(20);
     sc->setActiveScan(false);
-    sc->setInterval(100);
-    sc->setWindow(99);
+    sc->setInterval(160);
+    sc->setWindow(80);
+    Serial.println("[rid] s5c params set itvl=160 win=80");
+    delay(20);
     sc->start(0, false);
+    Serial.printf("[rid] s5d start done heap=%u\n", (unsigned)ESP.getFreeHeap());
+    delay(20);
     s_ridBle = true;
-    Serial.println("[rid] s6 ble scan running");
+    Serial.printf("[rid] s6 ble scan running heap=%u\n", (unsigned)ESP.getFreeHeap());
   }
 
-  wifi_promiscuous_filter_t pf;
-  pf.filter_mask = WIFI_PROMIS_FILTER_MASK_MGMT;
-  esp_wifi_set_promiscuous_filter(&pf);
-  esp_wifi_set_promiscuous_rx_cb(&ridWifiCb);
-  esp_wifi_set_promiscuous(true);
-  Serial.println("[rid] s7 promiscuous on");
+  if (s_ridWifiWant) {
+    wifi_promiscuous_filter_t pf;
+    pf.filter_mask = WIFI_PROMIS_FILTER_MASK_MGMT;
+    esp_err_t e1 = esp_wifi_set_promiscuous_filter(&pf);
+    esp_wifi_set_promiscuous_rx_cb(&ridWifiCb);
+    esp_err_t e2 = esp_wifi_set_promiscuous(true);
+    Serial.printf("[rid] s7 promiscuous on e=%d/%d heap=%u\n", (int)e1, (int)e2,
+                  (unsigned)ESP.getFreeHeap());
+  } else {
+    Serial.println("[rid] s7 promiscuous skipped (wifi=0)");
+  }
 
   s_ridOn = true;
   s_ridStartMs = millis();
@@ -282,7 +301,7 @@ static void ridStart() {
 
 static void ridStop() {
   if (!s_ridOn) return;
-  Serial.println("[rid] t1 promiscuous off");
+  Serial.printf("[rid] t1 promiscuous off heap=%u\n", (unsigned)ESP.getFreeHeap());
   esp_wifi_set_promiscuous(false);
   if (s_ridBle) {
     NimBLEScan *sc = NimBLEDevice::getScan();
@@ -320,6 +339,11 @@ static void ridTick(unsigned long now) {
     if (s_ridOn) ridStop();
   }
   if (s_ridWant && !s_ridOn && s_ridWantMs) {
+    if (now - s_ridHbdMs >= 2000UL) {
+      s_ridHbdMs = now;
+      Serial.printf("[rid] want pending heap=%u max=%u\n", (unsigned)ESP.getFreeHeap(),
+                    (unsigned)ESP.getMaxAllocHeap());
+    }
     if (millis() - s_ridWantMs >= 400UL) ridStart();
   }
 
@@ -502,6 +526,7 @@ static void ridPage() {
     s_ridWant = true;
     s_ridWantMs = millis();
     s_ridBleWant = s_srv->hasArg("ble") ? (s_srv->arg("ble") != "0") : true;
+    s_ridWifiWant = s_srv->hasArg("wifi") ? (s_srv->arg("wifi") != "0") : true;
   }
   if (s_srv->hasArg("off")) {
     s_ridWant = false;
@@ -518,6 +543,8 @@ static void ridPage() {
   h += "onclick=\"location.href='/rid?off=1'\">停止侦测，恢复联网</button>";
   h += "<button class=btn style='background:#8a8f98;font-size:13px' ";
   h += "onclick=\"location.href='/rid?on=1&amp;ble=0'\">只收 Beacon（不开蓝牙）</button>";
+  h += "<button class=btn style='background:#8a8f98;font-size:13px' ";
+  h += "onclick=\"location.href='/rid?on=1&amp;wifi=0'\">只收蓝牙（不开 Beacon）</button>";
   h += "<div class=hint>点「开启侦测模式」后约 1 秒，设备会关闭联网（航班与云图停更），";
   h += "只保留热点 PlaneRadar-Setup（信道 6）。手机请连这个热点，再访问 192.168.4.1/rid 看结果。";
   h += "点「停止」后约 2 秒自动连回原来的 WiFi。</div>";
