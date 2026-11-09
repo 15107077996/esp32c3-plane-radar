@@ -12,8 +12,8 @@
 // table feeds both the round screen page and the /rid web page.
 // ============================================================================
 // PNGdec 的 zutil.h 把 local 定义成 static（C 写法），而 BLE 协议栈头文件里
-// 有个结构体字段就叫 local，展开成 static 后报 expected unqualified-id。
-// PNGdec 的 .cpp 各自重新包含 zutil.h，所以这里直接撤掉这个宏是安全的。
+// 有个结构体字段就叫 local，展开成 static 后会报 expected unqualified-id。
+// PNGdec 的 .cpp 各自重新包含 zutil.h，因此这里直接撤掉这个宏是安全的。
 #ifdef local
 #undef local
 #endif
@@ -23,9 +23,11 @@
 #define RID_CHANNEL 6          // 2.4 GHz channel most RID beacons sit on
 #define RID_STALE_MS 45000UL   // drop an entry that stopped broadcasting
 #define RID_QUEUE_N 8          // messages copied out of the radio callbacks
+#define RID_AUTO_STOP_MS 600000UL // 10 min without a page poll -> hand back the radio
 
 static void ridPage();            // web handler, defined at the bottom
 static bool s_ridWebHooked = false;
+static unsigned long s_ridLastPoll = 0; // last /rid or /rid.json request
 
 // One detected drone. Kept small: 12 of them plus the shared buffers have to
 // fit beside the web server and the TLS client on a 400 KB part.
@@ -164,7 +166,6 @@ static void ridFeed(const uint8_t *d, int n, const char *mac, int8_t rssi, uint8
 }
 
 // ---- Bluetooth LE --------------------------------------------------------
-// NimBLE-Arduino 1.4.x hands out a raw pointer plus its length, not a String.
 static void ridBlePayload(const uint8_t *pl, size_t plLen, const char *mac, int rssi) {
   size_t i = 0;
   while (i + 1 < plLen) {
@@ -173,7 +174,7 @@ static void ridBlePayload(const uint8_t *pl, size_t plLen, const char *mac, int 
     if (i + 1 + len > plLen) break;
     uint8_t type = pl[i + 1];
     if (type == 0x16 && len >= 4) { // service data, 16-bit UUID
-      if (pl[i + 2] == 0xFA && pl[i + 3] == 0xFF) {
+      if ((uint8_t)pl[i + 2] == 0xFA && (uint8_t)pl[i + 3] == 0xFF) {
         s_ridBleN++;
         ridFeed(&pl[i + 4], (int)(len - 3), mac, (int8_t)rssi, 1);
       }
@@ -265,6 +266,7 @@ static void ridStart() {
 
   s_ridOn = true;
   s_ridStartMs = millis();
+  s_ridLastPoll = millis();
   Serial.printf("[rid] scan ch%d heap=%u max=%u\n", RID_CHANNEL,
                 (unsigned)ESP.getFreeHeap(), (unsigned)ESP.getMaxAllocHeap());
 }
@@ -307,6 +309,15 @@ static void ridTick(unsigned long now) {
     Serial.println("[rid] web routes /rid /rid.json");
   }
   if (!s_ridOn) return;
+  // Safety: nobody is watching any more (phone closed the page, or the page
+  // was refreshed on a phone that then went to sleep). Hand the radio back so
+  // the board always returns to normal networking on its own.
+  if (now - s_ridLastPoll > RID_AUTO_STOP_MS) {
+    Serial.println("[rid] auto stop: no page poll for 10 min");
+    s_ridWant = false;
+    ridStop();
+    return;
+  }
   while (s_ridQTail != s_ridQHead) {
     RidMsg *q = &s_ridQ[s_ridQTail];
     ridApply(q->raw, q->mac, q->rssi, q->tr);
@@ -436,7 +447,7 @@ static void ridJson(String &out) {
 // /rid        the phone page (mode buttons + live table)
 // /rid.json   the same data as JSON, polled every 2 s by the page itself
 static const char *RID_JS =
-    "var SMS=['未声明','地面','空中','紧急'];"
+    "var SMS=['未声明','地面','空中','紧急'];";
     "function pv(v){return (v===undefined||v===null||v==='')?'-':v;}"
     "function st(){fetch('/rid.json',{cache:'no-store'}).then(function(r){return r.json();})"
     ".then(function(d){"
@@ -467,6 +478,7 @@ static const char *RID_JS =
     "setInterval(st,2000);st();";
 
 static void ridPage() {
+  s_ridLastPoll = millis(); // any visit or poll keeps the detector alive
   if (s_srv->uri() == "/rid.json") {
     String js;
     ridJson(js);
