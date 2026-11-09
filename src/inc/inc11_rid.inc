@@ -28,7 +28,9 @@ static bool s_ridBleTaskRun = false;
 static bool s_ridOffReq = false;
 static unsigned long s_ridWantMs = 0;
 static unsigned long s_ridHbdMs = 0;
-static bool s_ridInjectReq = false;
+static volatile int s_ridInjectReq = 0;
+static bool s_ridBleStarted = false;
+static volatile bool s_ridBleDone = false;
 
 struct RidDrone {
   char mac[18];
@@ -199,7 +201,11 @@ static void ridWifiFrame(const uint8_t *f, int sigLen) {
         s_ridWifiN++;
         const uint8_t *d = ie + 3;
         int dn = elen - 3;
+        // ASTM WiFi Beacon 载荷结构：OUI(3) | OUI Type 0x0D(1) | Message Counter(1) | 报文
+        // c10 实测 wifi=3 frames=0：只跳了 0x0D，报文头被 Message Counter 顶掉一字节，
+        // ridFeed 拿到的 byte0 是计数值，整帧被判成未知类型丢弃。
         if (dn >= 4 && d[0] == 0x0D) { d++; dn--; }
+        if (dn >= 2) { d++; dn--; }
         char mac[18];
         snprintf(mac, sizeof(mac), "%02x:%02x:%02x:%02x:%02x:%02x",
                  f[10], f[11], f[12], f[13], f[14], f[15]);
@@ -250,7 +256,19 @@ static void ridBleTask(void *arg) {
     s_ridBle = true;
     delay(60);
   }
+  // 收尾必须在本任务内完成。c10 实测：主线程在任务仍阻塞于 sc->start(6,false) 时
+  // 调 stop()/deinit()，任务随后 return 触发 _prvTaskExitError
+  // (uxCriticalNesting == ~0UL) 断言，整机重启。
+  {
+    NimBLEScan *sc2 = NimBLEDevice::getScan();
+    if (sc2) sc2->stop();
+    NimBLEDevice::deinit(true);
+    s_ridBle = false;
+    Serial.println("[rid] t2 ble down");
+  }
   Serial.println("[rid] s7 ble task exit");
+  s_ridBleDone = true;
+  vTaskDelete(NULL);
 }
 
 static void ridStart() {
@@ -300,6 +318,8 @@ static void ridStart() {
     if (!s_ridCb) s_ridCb = new RidScanCb();
     if (!s_ridBleTaskRun) {
       s_ridBleTaskRun = true;
+      s_ridBleDone = false;
+      s_ridBleStarted = true;
       xTaskCreatePinnedToCore(ridBleTask, "ridble", 8192, NULL, 1, NULL, 0);
     }
   }
@@ -340,19 +360,21 @@ static void ridStart() {
 
 static void ridStop() {
   if (!s_ridOn) return;
+  s_ridOn = false;
   Serial.printf("[rid] t1 promiscuous off heap=%u\n", (unsigned)ESP.getFreeHeap());
   esp_wifi_set_promiscuous(false);
+  // 不在这里碰 NimBLE：扫描对象正被 BLE 任务持有，跨任务销毁会撞断言。
+  // 只置标志，等任务自己在下一轮循环退出（最坏要等一个 6 秒扫描窗口）。
   s_ridBleTaskRun = false;
-  if (s_ridBle) {
-    NimBLEScan *sc = NimBLEDevice::getScan();
-    if (sc) sc->stop();
-    NimBLEDevice::deinit(true);
-    s_ridBle = false;
-    Serial.println("[rid] t2 ble down");
+  if (s_ridBleStarted) {
+    unsigned long t0 = millis();
+    while (!s_ridBleDone && millis() - t0 < 8000UL) delay(50);
+    Serial.printf("[rid] t2 ble join done=%d waited=%lu heap=%u\n",
+                  s_ridBleDone ? 1 : 0, millis() - t0, (unsigned)ESP.getFreeHeap());
+    s_ridBleStarted = false;
   }
-  s_ridOn = false;
   s_ridCount = 0;
-  delay(150);
+  delay(100);
   // 共存断言要求两者同时使能时 WiFi 必须开 modem sleep。若 BT 控制器还
   // 处于 ENABLED（BLE 起来后又卡住、没能 deinit），关 modem sleep 会 abort，
   // 因此这里先查状态：没真正关掉就保持 modem sleep，宁可网页慢 1 秒。
@@ -376,35 +398,76 @@ static float ridDistKm(const RidDrone &d) {
   return haversineKm(s_lat, s_lon, d.lat, d.lon);
 }
 
-// 注入自测：构造 BasicID / Location / System / OperatorID 四帧真实 ODID 报文，
-// 走完整 ridFeed -> 队列 -> ridApply -> ridJson 路径，不发射任何射频信号。
-// 用途：周围没有 RID 无人机时，验证解码、列表与网页渲染是否正确。
-static void ridInjectTest() {
-  char mac[18] = "aa:bb:cc:00:11:22";
-  uint8_t m[25];
-  memset(m, 0, 25); m[0] = 0x02; m[1] = 0x12;
-  memcpy(m + 2, "TEST-RID-0001", 13);
-  ridFeed(m, 25, mac, 0, 2);
-  memset(m, 0, 25); m[0] = 0x12; m[1] = 0x20; m[2] = 45; m[3] = 8;
-  int32_t la = 256614000, lo = 1147650000;
+// 构造 4 条标准 ODID 报文（BasicID / Location / System / OperatorID，各 25 字节），
+// 软件注入自测用，不发射任何射频信号。
+static void ridBuildTestFrames(uint8_t *out, const char *uasId, const char *opId,
+                               int32_t la, int32_t lo, uint16_t ab, uint16_t hh,
+                               int32_t ola, int32_t olo) {
+  memset(out, 0, 100);
+  uint8_t *m = out;
+  m[0] = 0x02; m[1] = 0x12;
+  for (int i = 0; i < 20 && uasId[i]; i++) m[2 + i] = (uint8_t)uasId[i];
+  m += 25;
+  m[0] = 0x12; m[1] = 0x20; m[2] = 45; m[3] = 8;
   memcpy(m + 5, &la, 4); memcpy(m + 9, &lo, 4);
-  uint16_t ab = 1100, hh = 1080;
   memcpy(m + 13, &ab, 2); memcpy(m + 17, &hh, 2);
-  ridFeed(m, 25, mac, 0, 2);
-  memset(m, 0, 25); m[0] = 0x42;
-  memcpy(m + 1, "OP-TEST", 7);
-  int32_t ola = 256610000, olo = 1147640000;
+  m += 25;
+  m[0] = 0x42;                       // System：byte1 是 flags，坐标在 2..9
   memcpy(m + 2, &ola, 4); memcpy(m + 6, &olo, 4);
-  ridFeed(m, 25, mac, 0, 2);
-  memset(m, 0, 25); m[0] = 0x52;
-  memcpy(m + 2, "OP-TEST-001", 11);
-  ridFeed(m, 25, mac, 0, 2);
+  m += 25;
+  m[0] = 0x52;
+  for (int i = 0; i < 20 && opId[i]; i++) m[2 + i] = (uint8_t)opId[i];
+}
+
+static void ridDrain() {
   while (s_ridQTail != s_ridQHead) {
     RidMsg *q = &s_ridQ[s_ridQTail];
     ridApply(q->raw, q->mac, q->rssi, q->tr);
     s_ridQTail = (s_ridQTail + 1) % RID_QUEUE_N;
   }
+}
+
+// 注入 1（/rid?inject=1）：四条报文逐条走 ridFeed，验证解析、聚合、页面。
+static void ridInjectTest() {
+  char mac[18] = "aa:bb:cc:00:11:22";
+  uint8_t f[100];
+  ridBuildTestFrames(f, "TEST-RID-0001", "OP-TEST-001",
+                     256614000, 1147650000, 1100, 1080, 256610000, 1147640000);
+  for (int k = 0; k < 4; k++) ridFeed(f + k * 25, 25, mac, 0, 2);
+  ridDrain();
   Serial.printf("[rid] inject done frames=%d n=%d\n", s_ridFrames, s_ridCount);
+  String js; ridJson(js);
+  Serial.printf("[rid] injjson %s\n", js.c_str());
+}
+
+// 注入 2（/rid?inject=2）：拼一个真的 802.11 Beacon 帧（vendor IE + OUI FA:0B:BC
+// + OUI Type 0x0D + Message Counter + MessagePack 四帧），走 ridWifiFrame 全路径，
+// 验证 Beacon 侧 IE 定位、计数器跳过与 MessagePack 展开。同样不发任何信号。
+static void ridInjectWifiTest() {
+  uint8_t fr[160];
+  memset(fr, 0, sizeof(fr));
+  fr[0] = 0x80;                       // beacon
+  for (int k = 0; k < 6; k++) {       // 24..35：12 字节固定参数区，这里用 6 个空 IE 占位
+    fr[24 + k * 2] = 0x00;
+    fr[25 + k * 2] = 0x00;
+  }
+  fr[10] = 0xaa; fr[11] = 0xbb; fr[12] = 0xcc;
+  fr[13] = 0x00; fr[14] = 0x11; fr[15] = 0x33;
+  int i = 36;
+  fr[i++] = 0xDD;                     // vendor specific IE
+  fr[i++] = 108;                      // 3 OUI + 1 type + 1 counter + 103 载荷
+  fr[i++] = 0xFA; fr[i++] = 0x0B; fr[i++] = 0xBC;
+  fr[i++] = 0x0D;                     // OUI Type：WiFi Beacon
+  fr[i++] = 0x01;                     // Message Counter
+  fr[i++] = 0xF0; fr[i++] = 25; fr[i++] = 4;   // MessagePack：size=25，4 条
+  uint8_t f[100];
+  ridBuildTestFrames(f, "TEST-RID-WIFI", "OP-WIFI-001",
+                     256614000, 1147650000, 1100, 1080, 256610000, 1147640000);
+  memcpy(fr + i, f, 100);
+  ridWifiFrame(fr, 150);
+  ridDrain();
+  Serial.printf("[rid] injwifi done wifiN=%d frames=%d n=%d\n",
+                s_ridWifiN, s_ridFrames, s_ridCount);
   String js; ridJson(js);
   Serial.printf("[rid] injjson %s\n", js.c_str());
 }
@@ -418,8 +481,9 @@ static void ridTick(unsigned long now) {
   }
 
   if (s_ridInjectReq) {
-    s_ridInjectReq = false;
-    ridInjectTest();
+    int k = s_ridInjectReq;
+    s_ridInjectReq = 0;
+    if (k == 2) ridInjectWifiTest(); else ridInjectTest();
   }
   if (s_ridOffReq) {
     s_ridOffReq = false;
@@ -615,7 +679,8 @@ static void ridPage() {
     s_ridBleWant = s_srv->hasArg("ble") ? (s_srv->arg("ble") != "0") : true;
     s_ridWifiWant = s_srv->hasArg("wifi") ? (s_srv->arg("wifi") != "0") : true;
   }
-  if (s_srv->hasArg("inject")) s_ridInjectReq = true;
+  if (s_srv->hasArg("inject"))
+    s_ridInjectReq = (s_srv->arg("inject") == "2") ? 2 : 1;
   if (s_srv->hasArg("off")) {
     s_ridWant = false;
     if (s_ridOn) s_ridOffReq = true;
@@ -634,10 +699,12 @@ static void ridPage() {
   h += "<button class=btn style='background:#8a8f98;font-size:13px' ";
   h += "onclick=\"location.href='/rid?on=1&amp;wifi=0'\">只收蓝牙（不开 Beacon）</button>";
   h += "<button class=btn style='background:#2f855a;font-size:13px' ";
-  h += "onclick=\"location.href='/rid?inject=1'\">注入测试数据（验证解码与页面，不发射信号）</button>";
+  h += "onclick=\"location.href='/rid?inject=1'\">注入 1：报文注入（验证解码与页面）</button>";
+  h += "<button class=btn style='background:#2f855a;font-size:13px' ";
+  h += "onclick=\"location.href='/rid?inject=2'\">注入 2：Beacon 帧注入（验证 WiFi 解析）</button>";
   h += "<div class=hint>点「开启侦测模式」后约 1 秒，设备会关闭联网（航班与云图停更），";
   h += "只保留热点 PlaneRadar-Setup（信道 6）。手机请连这个热点，再访问 192.168.4.1/rid 看结果。";
-  h += "点「停止」后约 2 秒自动连回原来的 WiFi。</div>";
+  h += "点「停止」后最多 6 秒自动连回原来的 WiFi。</div>";
   h += "<div id=tb></div>";
   h += RID_JS;
   h += "<div class=foot>被动接收 ASTM F3411 / GB 46750 广播 RID，不发射任何信号</div>";
