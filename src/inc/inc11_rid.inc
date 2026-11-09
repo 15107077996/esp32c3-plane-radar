@@ -11,6 +11,12 @@
 // Every decoded message updates a small table keyed by the sender MAC. The
 // table feeds both the round screen page and the /rid web page.
 // ============================================================================
+// PNGdec 的 zutil.h 把 local 定义成 static（C 写法），而 BLE 协议栈头文件里
+// 有个结构体字段就叫 local，展开成 static 后报 expected unqualified-id。
+// PNGdec 的 .cpp 各自重新包含 zutil.h，所以这里直接撤掉这个宏是安全的。
+#ifdef local
+#undef local
+#endif
 #include <NimBLEDevice.h>
 #include "esp_wifi.h"
 
@@ -158,17 +164,18 @@ static void ridFeed(const uint8_t *d, int n, const char *mac, int8_t rssi, uint8
 }
 
 // ---- Bluetooth LE --------------------------------------------------------
-static void ridBlePayload(const std::string &pl, const char *mac, int rssi) {
+// NimBLE-Arduino 1.4.x hands out a raw pointer plus its length, not a String.
+static void ridBlePayload(const uint8_t *pl, size_t plLen, const char *mac, int rssi) {
   size_t i = 0;
-  while (i + 1 < pl.size()) {
+  while (i + 1 < plLen) {
     uint8_t len = pl[i];
     if (len == 0) break;
-    if (i + 1 + len > pl.size()) break;
+    if (i + 1 + len > plLen) break;
     uint8_t type = pl[i + 1];
     if (type == 0x16 && len >= 4) { // service data, 16-bit UUID
-      if ((uint8_t)pl[i + 2] == 0xFA && (uint8_t)pl[i + 3] == 0xFF) {
+      if (pl[i + 2] == 0xFA && pl[i + 3] == 0xFF) {
         s_ridBleN++;
-        ridFeed((const uint8_t *)&pl[i + 4], len - 3, mac, (int8_t)rssi, 1);
+        ridFeed(&pl[i + 4], (int)(len - 3), mac, (int8_t)rssi, 1);
       }
     }
     i += 1 + len;
@@ -177,8 +184,8 @@ static void ridBlePayload(const std::string &pl, const char *mac, int rssi) {
 
 class RidScanCb : public NimBLEAdvertisedDeviceCallbacks {
   void onResult(NimBLEAdvertisedDevice *dev) override {
-    std::string pl = dev->getPayload();
-    ridBlePayload(pl, dev->getAddress().toString().c_str(), dev->getRSSI());
+    std::string addr = dev->getAddress().toString();
+    ridBlePayload(dev->getPayload(), dev->getPayloadLength(), addr.c_str(), dev->getRSSI());
   }
 };
 static RidScanCb *s_ridCb = nullptr;
@@ -429,34 +436,34 @@ static void ridJson(String &out) {
 // /rid        the phone page (mode buttons + live table)
 // /rid.json   the same data as JSON, polled every 2 s by the page itself
 static const char *RID_JS =
-    "var SMS=['未声明','地面','空中','紧急'];";
-    "function pv(v){return (v===undefined||v===null||v==='')?'-':v;}";
-    "function st(){fetch('/rid.json',{cache:'no-store'}).then(function(r){return r.json();})";
-    ".then(function(d){";
-    "var s=document.getElementById('st');";
-    "s.textContent=(d.on?'侦测中':'未开启')+' | BLE '+d.ble+' 帧 | Beacon '+d.wifi";
-    "+' 帧 | 解码 '+d.frames+' 条 | '+d.n+' 架';";
-    "var tb=document.getElementById('tb');tb.innerHTML='';";
-    "(d.list||[]).forEach(function(o){";
-    "var c=document.createElement('div');c.className='rcard';";
-    "var t=document.createElement('div');t.className='rt';";
-    "t.textContent=pv(o.id||o.mac);c.appendChild(t);";
-    "function row(k,v){var p=document.createElement('div');p.className='rr';";
-    "p.textContent=k+'：'+pv(v);c.appendChild(p);}";
-    "row('状态 / 机型',(SMS[o.st]||'未知')+' · '+pv(o.ua));";
-    "row('距离',o.km>0?o.km+' km':'-');";
-    "row('高度 (相对地面)',o.alt>-1000?o.alt+' m ('+(o.h>-1000?o.h+' m':'-')+')':'-');";
-    "row('速度 / 航向',o.spd>=0?o.spd+' m/s · '+o.dir+'°':'-');";
-    "row('无人机位置',o.la?o.la+', '+o.lo:'未广播');";
-    "row('操作者ID',o.op||'未广播');";
-    "row('操作者位置',o.ola?o.ola+', '+o.olo:'未广播');";
-    "row('信号 / 方式',pv(o.rssi)+' dBm · '+(o.tr==2?'WiFi Beacon':'BLE'));";
-    "row('更新 / 来源',o.age+' 秒前 · '+pv(o.mac));";
-    "tb.appendChild(c);});";
-    "if(!(d.list||[]).length){var e=document.createElement('div');e.className='rcard';";
-    "e.textContent=d.on?'暂未收到 RID 广播：把设备放在开阔处，等无人机通电/起飞后再看':'侦测未开启，点上面的按钮';";
-    "tb.appendChild(e);}";
-    "}).catch(function(){});}";
+    "var SMS=['未声明','地面','空中','紧急'];"
+    "function pv(v){return (v===undefined||v===null||v==='')?'-':v;}"
+    "function st(){fetch('/rid.json',{cache:'no-store'}).then(function(r){return r.json();})"
+    ".then(function(d){"
+    "var s=document.getElementById('st');"
+    "s.textContent=(d.on?'侦测中':'未开启')+' | BLE '+d.ble+' 帧 | Beacon '+d.wifi"
+    "+' 帧 | 解码 '+d.frames+' 条 | '+d.n+' 架';"
+    "var tb=document.getElementById('tb');tb.innerHTML='';"
+    "(d.list||[]).forEach(function(o){"
+    "var c=document.createElement('div');c.className='rcard';"
+    "var t=document.createElement('div');t.className='rt';"
+    "t.textContent=pv(o.id||o.mac);c.appendChild(t);"
+    "function row(k,v){var p=document.createElement('div');p.className='rr';"
+    "p.textContent=k+'：'+pv(v);c.appendChild(p);}"
+    "row('状态 / 机型',(SMS[o.st]||'未知')+' · '+pv(o.ua));"
+    "row('距离',o.km>0?o.km+' km':'-');"
+    "row('高度 (相对地面)',o.alt>-1000?o.alt+' m ('+(o.h>-1000?o.h+' m':'-')+')':'-');"
+    "row('速度 / 航向',o.spd>=0?o.spd+' m/s · '+o.dir+'°':'-');"
+    "row('无人机位置',o.la?o.la+', '+o.lo:'未广播');"
+    "row('操作者ID',o.op||'未广播');"
+    "row('操作者位置',o.ola?o.ola+', '+o.olo:'未广播');"
+    "row('信号 / 方式',pv(o.rssi)+' dBm · '+(o.tr==2?'WiFi Beacon':'BLE'));"
+    "row('更新 / 来源',o.age+' 秒前 · '+pv(o.mac));"
+    "tb.appendChild(c);});"
+    "if(!(d.list||[]).length){var e=document.createElement('div');e.className='rcard';"
+    "e.textContent=d.on?'暂未收到 RID 广播：把设备放在开阔处，等无人机通电/起飞后再看':'侦测未开启，点上面的按钮';"
+    "tb.appendChild(e);}"
+    "}).catch(function(){});}"
     "setInterval(st,2000);st();";
 
 static void ridPage() {
