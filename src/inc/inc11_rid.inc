@@ -31,6 +31,7 @@ static unsigned long s_ridLastPoll = 0; // last /rid or /rid.json request
 static bool s_ridBleWant = true;        // ?ble=0 -> Beacon only, BLE init skipped
 static bool s_ridOffReq = false;        // /rid?off=1, executed from loop()
 static unsigned long s_ridWantMs = 0;   // when /rid?on=1 arrived
+static unsigned long s_ridHbdMs = 0;    // next heartbeat log
 
 // One detected drone. Kept small: 12 of them plus the shared buffers have to
 // fit beside the web server and the TLS client on a 400 KB part.
@@ -263,19 +264,16 @@ static void ridStart() {
   s_ridWifiN = 0;
   s_ridOuiLog = 0;
 
-  wifi_promiscuous_filter_t pf;
-  pf.filter_mask = WIFI_PROMIS_FILTER_MASK_MGMT;
-  esp_wifi_set_promiscuous_filter(&pf);
-  esp_wifi_set_promiscuous_rx_cb(&ridWifiCb);
-  esp_wifi_set_promiscuous(true);
-  Serial.println("[rid] s4 promiscuous on");
-
+  // BLE has to come up BEFORE promiscuous mode. esp_bt_controller_enable()
+  // calls coex_core_enable(), and the WiFi driver puts coexistence into the
+  // "sniffer" state when promiscuous is already on; enabling BT from there
+  // aborts inside coex_core_enable (seen as abort() at PC 0x420a9f97).
   if (s_ridBleWant) {
-    Serial.printf("[rid] s5 ble init heap=%u max=%u\n",
+    Serial.printf("[rid] s4 ble init heap=%u max=%u\n",
                   (unsigned)ESP.getFreeHeap(), (unsigned)ESP.getMaxAllocHeap());
     if (!s_ridCb) s_ridCb = new RidScanCb();
     NimBLEDevice::init("PlaneRadar-RID");
-    Serial.println("[rid] s6 ble stack up");
+    Serial.println("[rid] s5 ble stack up");
     NimBLEScan *sc = NimBLEDevice::getScan();
     sc->setAdvertisedDeviceCallbacks(s_ridCb, true);
     sc->setActiveScan(false);
@@ -283,15 +281,23 @@ static void ridStart() {
     sc->setWindow(99);
     sc->start(0, false);
     s_ridBle = true;
-    Serial.println("[rid] s7 ble scan running");
+    Serial.println("[rid] s6 ble scan running");
   }
+
+  wifi_promiscuous_filter_t pf;
+  pf.filter_mask = WIFI_PROMIS_FILTER_MASK_MGMT;
+  esp_wifi_set_promiscuous_filter(&pf);
+  esp_wifi_set_promiscuous_rx_cb(&ridWifiCb);
+  esp_wifi_set_promiscuous(true);
+  Serial.println("[rid] s7 promiscuous on");
 
   s_ridOn = true;
   s_ridStartMs = millis();
   s_ridLastPoll = millis();
-  Serial.printf("[rid] scan ch%d ble=%d heap=%u max=%u\n", RID_CHANNEL,
+  s_ridHbdMs = 0;
+  Serial.printf("[rid] scan ch%d ble=%d heap=%u max=%u lastPoll=%lu\n", RID_CHANNEL,
                 s_ridBle ? 1 : 0, (unsigned)ESP.getFreeHeap(),
-                (unsigned)ESP.getMaxAllocHeap());
+                (unsigned)ESP.getMaxAllocHeap(), s_ridLastPoll);
 }
 
 static void ridStop() {
@@ -349,11 +355,19 @@ static void ridTick(unsigned long now) {
   // Safety: nobody is watching any more (phone closed the page, or the page
   // was refreshed on a phone that then went to sleep). Hand the radio back so
   // the board always returns to normal networking on its own.
-  if (now - s_ridLastPoll > RID_AUTO_STOP_MS) {
-    Serial.println("[rid] auto stop: no page poll for 10 min");
+  if ((now - s_ridLastPoll) > RID_AUTO_STOP_MS &&
+      (now - s_ridStartMs) > RID_AUTO_STOP_MS) {
+    Serial.printf("[rid] auto stop: now=%lu lastPoll=%lu start=%lu\n",
+                  now, s_ridLastPoll, s_ridStartMs);
     s_ridWant = false;
     ridStop();
     return;
+  }
+  if (now - s_ridHbdMs >= 10000UL) {
+    s_ridHbdMs = now;
+    Serial.printf("[rid] hb %lu s: ble=%d wifi=%d frames=%d drones=%d heap=%u\n",
+                  (now - s_ridStartMs) / 1000UL, s_ridBleN, s_ridWifiN,
+                  s_ridFrames, s_ridCount, (unsigned)ESP.getFreeHeap());
   }
   while (s_ridQTail != s_ridQHead) {
     RidMsg *q = &s_ridQ[s_ridQTail];
