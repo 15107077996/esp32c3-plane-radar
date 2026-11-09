@@ -10,6 +10,7 @@
 #undef local
 #endif
 #include <NimBLEDevice.h>
+#include <esp_bt.h>
 #include "esp_wifi.h"
 
 #define RID_CHANNEL 6
@@ -219,7 +220,7 @@ static void ridWifiCb(void *buf, wifi_promiscuous_pkt_type_t type) {
 
 static void ridBleTask(void *arg) {
   Serial.printf("[rid] s4a task up heap=%u\n", (unsigned)ESP.getFreeHeap());
-  delay(400);
+  delay(120);
   NimBLEDevice::init("PlaneRadar-RID");
   Serial.printf("[rid] s5 ble stack up heap=%u max=%u\n",
                 (unsigned)ESP.getFreeHeap(), (unsigned)ESP.getMaxAllocHeap());
@@ -249,16 +250,16 @@ static void ridStart() {
   Serial.println("[rid] s1 release png");
   releasePngBuf();
 
-  // ESP32-C3 是单核芯片；纯 AP 模式下 WiFi/BT 共存拿不到射频时间片，
-  // ble_gap_disc 会永久等在 HCI 命令完成事件上。侦测期间保留 AP_STA
-  // （STA 不连任何 AP），共存才成立。
-  Serial.println("[rid] s2 wifi ap+sta");
+  // ESP32-C3 是单核芯片，WiFi/BT 共用一套射频与共存状态机：
+  //  a) 纯 AP 模式下共存拿不到射频时间片，BT 侧 HCI 会一直等；
+  //  b) AP 一旦开始周期广播 beacon，BT 控制器初始化/同步更难抢到窗口。
+  // 因此顺序是：先让 WiFi 起来但只 init 不出流量（mode + disconnect，不 softAP），
+  // 打开 modem sleep 满足共存断言，再把 BLE 拉起来，最后才 broadcast 的 AP。
+  Serial.println("[rid] s2 wifi init (no ap yet)");
   WiFi.mode(WIFI_AP_STA);
   WiFi.disconnect();
-  delay(120);
-  WiFi.softAP("PlaneRadar-Setup", NULL, RID_CHANNEL);
-  esp_wifi_set_channel(RID_CHANNEL, WIFI_SECOND_CHAN_NONE);
-  Serial.printf("[rid] s3 ap up ch%d mode=%d\n", RID_CHANNEL, (int)WiFi.getMode());
+  delay(150);
+  Serial.printf("[rid] s3 wifi inited mode=%d\n", (int)WiFi.getMode());
 
   s_ridQHead = 0;
   s_ridQTail = 0;
@@ -292,17 +293,29 @@ static void ridStart() {
     }
   }
 
-  delay(300);
+  // 给 BLE 任务最多 1.5 秒去完成控制器初始化与首次同步；超时也继续，
+  // 绝不让 BLE 拖死整机（Beacon 侧仍可用，且不会触发关 modem sleep 的断言）。
+  {
+    unsigned long t0 = millis();
+    while (s_ridBleTaskRun && !s_ridBle && millis() - t0 < 1500UL) delay(50);
+    Serial.printf("[rid] s6b ble-ready=%d waited=%lu heap=%u\n", s_ridBle ? 1 : 0,
+                  millis() - t0, (unsigned)ESP.getFreeHeap());
+  }
+
+  WiFi.softAP("PlaneRadar-Setup", NULL, RID_CHANNEL);
+  esp_wifi_set_channel(RID_CHANNEL, WIFI_SECOND_CHAN_NONE);
+  Serial.printf("[rid] s7 ap up ch%d heap=%u\n", RID_CHANNEL, (unsigned)ESP.getFreeHeap());
+
   if (s_ridWifiWant) {
     wifi_promiscuous_filter_t pf;
     pf.filter_mask = WIFI_PROMIS_FILTER_MASK_MGMT;
     esp_err_t e1 = esp_wifi_set_promiscuous_filter(&pf);
     esp_wifi_set_promiscuous_rx_cb(&ridWifiCb);
     esp_err_t e2 = esp_wifi_set_promiscuous(true);
-    Serial.printf("[rid] s7 promiscuous on e=%d/%d heap=%u\n", (int)e1, (int)e2,
+    Serial.printf("[rid] s8 promiscuous on e=%d/%d heap=%u\n", (int)e1, (int)e2,
                   (unsigned)ESP.getFreeHeap());
   } else {
-    Serial.println("[rid] s7 promiscuous skipped (wifi=0)");
+    Serial.println("[rid] s8 promiscuous skipped (wifi=0)");
   }
 
   s_ridOn = true;
@@ -328,10 +341,19 @@ static void ridStop() {
   s_ridBleTaskRun = false;
   s_ridOn = false;
   s_ridCount = 0;
+  delay(150);
+  // 共存断言要求两者同时使能时 WiFi 必须开 modem sleep。若 BT 控制器还
+  // 处于 ENABLED（BLE 起来后又卡住、没能 deinit），关 modem sleep 会 abort，
+  // 因此这里先查状态：没真正关掉就保持 modem sleep，宁可网页慢 1 秒。
+  if (esp_bt_controller_get_status() == ESP_BT_CONTROLLER_STATUS_ENABLED) {
+    Serial.println("[rid] bt still enabled: keep wifi modem sleep");
+  } else {
+    WiFi.setSleep(false);
+    esp_wifi_set_ps(WIFI_PS_NONE);
+    Serial.println("[rid] wifi sleep restored");
+  }
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAP("PlaneRadar-Setup", NULL, 1);
-  WiFi.setSleep(false);
-  esp_wifi_set_ps(WIFI_PS_NONE);
   if (s_ssid.length()) WiFi.begin(s_ssid.c_str(), s_pass.c_str());
   Serial.printf("[rid] stop: %d ble, %d wifi, %d msgs, heap=%u\n",
                 s_ridBleN, s_ridWifiN, s_ridFrames, (unsigned)ESP.getFreeHeap());
@@ -360,7 +382,7 @@ static void ridTick(unsigned long now) {
       Serial.printf("[rid] want pending heap=%u max=%u\n", (unsigned)ESP.getFreeHeap(),
                     (unsigned)ESP.getMaxAllocHeap());
     }
-    if (millis() - s_ridWantMs >= 400UL) ridStart();
+    if (millis() - s_ridWantMs >= 400UL) { ridStart(); return; }
   }
 
   if (!s_ridOn) return;
