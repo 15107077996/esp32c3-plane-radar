@@ -41,7 +41,7 @@ Collecting bitarray<4.0,>=3.0.0 (from bitstring~=4.3.1)
 Collecting pycparser (from cffi>=1.14->cryptography~=45.0.3)
   Using cached pycparser-3.12-py3-none-any.whl.metadata (9.7 kB)
 Downloading cryptography-45.0.7-cp311-abi3-manylinux_2_34_x86_64.whl (4.5 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 202.5 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 97.9 MB/s  0:00:00
 Downloading ecdsa-0.19.2-py2.py3-none-any.whl (150 kB)
 Downloading bitstring-4.3.1-py3-none-any.whl (71 kB)
 Using cached reedsolo-1.7.0-py3-none-any.whl (32 kB)
@@ -254,10 +254,10 @@ Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_u8toa.c.o
 Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_DataBus.cpp.o
 Archiving .pio/build/esp32c3/libb64/libU8g2.a
 Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_G.cpp.o
-Indexing .pio/build/esp32c3/libb64/libU8g2.a
 Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_GFX.cpp.o
 Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_GFX_Library.cpp.o
 Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_TFT.cpp.o
+Indexing .pio/build/esp32c3/libb64/libU8g2.a
 Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_TFT_18bit.cpp.o
 Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/canvas/Arduino_Canvas.cpp.o
 Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/canvas/Arduino_Canvas_3bit.cpp.o
@@ -353,14 +353,12 @@ Compiling .pio/build/esp32c3/lib002/PNGdec/inflate.c.o
 Compiling .pio/build/esp32c3/lib002/PNGdec/inftrees.c.o
 Compiling .pio/build/esp32c3/lib002/PNGdec/zutil.c.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLE2904.cpp.o
-Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEAddress.cpp.o
-Archiving .pio/build/esp32c3/libd74/libGFX Library for Arduino.a
 Archiving .pio/build/esp32c3/lib002/libPNGdec.a
 Indexing .pio/build/esp32c3/lib002/libPNGdec.a
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEAddress.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEAdvertisedDevice.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEAdvertising.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEBeacon.cpp.o
-Indexing .pio/build/esp32c3/libd74/libGFX Library for Arduino.a
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLECharacteristic.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEClient.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEDescriptor.cpp.o
@@ -370,6 +368,7 @@ Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEEddystoneURL.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEExtAdvertising.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEHIDDevice.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLERemoteCharacteristic.cpp.o
+Archiving .pio/build/esp32c3/libd74/libGFX Library for Arduino.a
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLERemoteDescriptor.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLERemoteService.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEScan.cpp.o
@@ -378,6 +377,7 @@ Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEServer.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEService.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEUUID.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEUtils.cpp.o
+Indexing .pio/build/esp32c3/libd74/libGFX Library for Arduino.a
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/esp_port/esp-hci/src/esp_nimble_hci.c.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/esp_port/port/src/esp_nimble_mem.c.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/aes_decrypt.c.o
@@ -523,8 +523,8 @@ Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/porting/npl/freertos/s
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/porting/npl/freertos/src/npl_os_freertos.c.o
 Compiling .pio/build/esp32c3/lib989/WiFi/WiFi.cpp.o
 Compiling .pio/build/esp32c3/lib989/WiFi/WiFiAP.cpp.o
-Archiving .pio/build/esp32c3/lib6ba/libNimBLE-Arduino.a
 Compiling .pio/build/esp32c3/lib989/WiFi/WiFiClient.cpp.o
+Archiving .pio/build/esp32c3/lib6ba/libNimBLE-Arduino.a
 Indexing .pio/build/esp32c3/lib6ba/libNimBLE-Arduino.a
 Compiling .pio/build/esp32c3/lib989/WiFi/WiFiGeneric.cpp.o
 Compiling .pio/build/esp32c3/lib989/WiFi/WiFiMulti.cpp.o
@@ -547,9 +547,9 @@ Archiving .pio/build/esp32c3/libe70/libPreferences.a
 Indexing .pio/build/esp32c3/libe70/libPreferences.a
 Compiling .pio/build/esp32c3/lib864/SPIFFS/SPIFFS.cpp.o
 Compiling .pio/build/esp32c3/lib4b6/Update/HttpsOTAUpdate.cpp.o
-Compiling .pio/build/esp32c3/lib4b6/Update/Updater.cpp.o
 Archiving .pio/build/esp32c3/lib67b/libHTTPClient.a
 Indexing .pio/build/esp32c3/lib67b/libHTTPClient.a
+Compiling .pio/build/esp32c3/lib4b6/Update/Updater.cpp.o
 Compiling .pio/build/esp32c3/lib1ce/WebServer/Parsing.cpp.o
 Archiving .pio/build/esp32c3/lib7aa/libFS.a
 Indexing .pio/build/esp32c3/lib7aa/libFS.a
@@ -613,8 +613,8 @@ Linking .pio/build/esp32c3/firmware.elf
 Retrieving maximum program size .pio/build/esp32c3/firmware.elf
 Checking size .pio/build/esp32c3/firmware.elf
 Advanced Memory Usage is available via "PlatformIO Home > Project Inspect"
-RAM:   [===       ]  34.3% (used 112404 bytes from 327680 bytes)
-Flash: [=====     ]  51.9% (used 1633920 bytes from 3145728 bytes)
+RAM:   [===       ]  34.3% (used 112420 bytes from 327680 bytes)
+Flash: [=====     ]  52.0% (used 1635050 bytes from 3145728 bytes)
 Building .pio/build/esp32c3/firmware.bin with action:
   "$PYTHONEXE" "$OBJCOPY" --chip esp32c3 elf2image --flash_mode ${__get_board_flash_mode(__env__)} --flash_freq ${__get_board_f_image(__env__)} --flash_size 4MB --elf-sha256-offset 0xb0 -o $TARGET $SOURCES
 Building .pio/build/esp32c3/firmware.bin
@@ -622,4 +622,4 @@ esptool.py v4.9.0
 Creating esp32c3 image...
 Merged 2 ELF sections
 Successfully created esp32c3 image.
-======================== [SUCCESS] Took 198.88 seconds ========================
+======================== [SUCCESS] Took 153.64 seconds ========================
