@@ -236,11 +236,19 @@ static void ridBleTask(void *arg) {
   sc->setWindow(80);
   Serial.println("[rid] s5c params set itvl=320 win=80");
   delay(60);
-  sc->start(0, false);
-  Serial.printf("[rid] s5d start done heap=%u\n", (unsigned)ESP.getFreeHeap());
-  s_ridBle = true;
-  Serial.printf("[rid] s6 ble scan running heap=%u\n", (unsigned)ESP.getFreeHeap());
-  vTaskDelete(NULL);
+  // 用限时窗口（6 秒）+ 循环重启，而不是 duration=0 永久扫描：
+  // ble_gap_disc 在 IDF5 的 NimBLE 1.4.3 上首轮可能长时间等 HCI 完成事件，
+  // 永久扫描会把 BLE 任务卡死在这里（c7 实测 s5c 之后无 s5d）。限时窗口
+  // 至少让 start() 有返回机会，返回后立即重启，扫描仍然是连续的。
+  while (s_ridBleTaskRun) {
+    Serial.printf("[rid] s5c2 gap_disc 6s heap=%u\n", (unsigned)ESP.getFreeHeap());
+    sc->start(6, false);
+    Serial.printf("[rid] s5d start ret heap=%u ble=%d\n",
+                  (unsigned)ESP.getFreeHeap(), s_ridBle ? 1 : 0);
+    s_ridBle = true;
+    delay(60);
+  }
+  Serial.println("[rid] s7 ble task exit");
 }
 
 static void ridStart() {
@@ -257,6 +265,7 @@ static void ridStart() {
   // 打开 modem sleep 满足共存断言，再把 BLE 拉起来，最后才 broadcast 的 AP。
   Serial.println("[rid] s2 wifi init (no ap yet)");
   WiFi.mode(WIFI_AP_STA);
+  WiFi.setAutoReconnect(false);
   WiFi.disconnect();
   delay(150);
   Serial.printf("[rid] s3 wifi inited mode=%d\n", (int)WiFi.getMode());
@@ -289,7 +298,7 @@ static void ridStart() {
     if (!s_ridCb) s_ridCb = new RidScanCb();
     if (!s_ridBleTaskRun) {
       s_ridBleTaskRun = true;
-      xTaskCreatePinnedToCore(ridBleTask, "ridble", 4096, NULL, 1, NULL, 0);
+      xTaskCreatePinnedToCore(ridBleTask, "ridble", 8192, NULL, 1, NULL, 0);
     }
   }
 
@@ -331,6 +340,7 @@ static void ridStop() {
   if (!s_ridOn) return;
   Serial.printf("[rid] t1 promiscuous off heap=%u\n", (unsigned)ESP.getFreeHeap());
   esp_wifi_set_promiscuous(false);
+  s_ridBleTaskRun = false;
   if (s_ridBle) {
     NimBLEScan *sc = NimBLEDevice::getScan();
     if (sc) sc->stop();
@@ -338,7 +348,6 @@ static void ridStop() {
     s_ridBle = false;
     Serial.println("[rid] t2 ble down");
   }
-  s_ridBleTaskRun = false;
   s_ridOn = false;
   s_ridCount = 0;
   delay(150);
@@ -354,6 +363,7 @@ static void ridStop() {
   }
   WiFi.mode(WIFI_AP_STA);
   WiFi.softAP("PlaneRadar-Setup", NULL, 1);
+  WiFi.setAutoReconnect(true);
   if (s_ssid.length()) WiFi.begin(s_ssid.c_str(), s_pass.c_str());
   Serial.printf("[rid] stop: %d ble, %d wifi, %d msgs, heap=%u\n",
                 s_ridBleN, s_ridWifiN, s_ridFrames, (unsigned)ESP.getFreeHeap());
