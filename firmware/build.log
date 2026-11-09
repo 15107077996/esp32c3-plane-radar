@@ -41,7 +41,7 @@ Collecting bitarray<4.0,>=3.0.0 (from bitstring~=4.3.1)
 Collecting pycparser (from cffi>=1.14->cryptography~=45.0.3)
   Using cached pycparser-3.12-py3-none-any.whl.metadata (9.7 kB)
 Downloading cryptography-45.0.7-cp311-abi3-manylinux_2_34_x86_64.whl (4.5 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 289.5 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 66.9 MB/s  0:00:00
 Downloading ecdsa-0.19.2-py2.py3-none-any.whl (150 kB)
 Downloading bitstring-4.3.1-py3-none-any.whl (71 kB)
 Using cached reedsolo-1.7.0-py3-none-any.whl (32 kB)
@@ -118,9 +118,44 @@ Compiling .pio/build/esp32c3/libb64/U8g2/U8g2lib.cpp.o
 Archiving .pio/build/esp32c3/lib30b/libSPI.a
 Indexing .pio/build/esp32c3/lib30b/libSPI.a
 Compiling .pio/build/esp32c3/libb64/U8g2/U8x8lib.cpp.o
-src/main.cpp:13:10: fatal error: inc/inc11_rid.inc: No such file or directory
- #include "inc/inc11_rid.inc"
-          ^~~~~~~~~~~~~~~~~~~
-compilation terminated.
+Archiving .pio/build/esp32c3/liba33/libWire.a
+Indexing .pio/build/esp32c3/liba33/libWire.a
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/mui.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/mui_u8g2.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_arc.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_bitmap.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_box.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_buffer.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_button.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_circle.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_cleardisplay.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_d_memory.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_d_setup.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_font.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_fonts.c.o
+In file included from .pio/libdeps/esp32c3/PNGdec/src/PNGdec.h:34,
+                 from src/inc/inc01_defs.inc:12,
+                 from src/main.cpp:3:
+.pio/libdeps/esp32c3/PNGdec/src/zutil.h:37:17: error: expected unqualified-id before 'static'
+ #  define local static
+                 ^~~~~~
+.pio/libdeps/esp32c3/PNGdec/src/zutil.h:37:17: note: in definition of macro 'local'
+ #  define local static
+                 ^~~~~~
+In file included from src/main.cpp:13:
+src/inc/inc11_rid.inc: In member function 'virtual void RidScanCb::onResult(NimBLEAdvertisedDevice*)':
+src/inc/inc11_rid.inc:176:37: error: conversion from 'uint8_t*' {aka 'unsigned char*'} to non-scalar type 'std::__cxx11::string' {aka 'std::__cxx11::basic_string<char>'} requested
+     std::string pl = dev->getPayload();
+                      ~~~~~~~~~~~~~~~^~
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_hvline.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_input_value.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_intersection.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_kerning.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_line.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_ll_hvline.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_message.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_polygon.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_selection_list.c.o
+Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8g2_setup.c.o
 *** [.pio/build/esp32c3/src/main.cpp.o] Error 1
-========================= [FAILED] Took 55.58 seconds =========================
+========================= [FAILED] Took 54.43 seconds =========================
