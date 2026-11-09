@@ -219,6 +219,7 @@ static void handleHome() {
   String h = pageHead("雷达雨图设置", "PlaneRadar-Setup");
   h += "<button class=btn onclick=\"location.href='/wifi'\">配置无线WiFi连接</button>";
   h += "<button class=btn onclick=\"location.href='/info'\">设备信息</button>";
+  h += "<button class=btn onclick=\"location.href='/rid'\">无人机 RID 侦测</button>";
   h += "<button class=btn onclick=\"location.href='/exit'\">退出</button>";
   h += "<hr>";
   h += "<button class=btn onclick=\"location.href='/ota'\">固件升级</button>";
@@ -655,3 +656,4 @@ static void syncTime() {
   if (s_timeOk) Serial.printf("[ntp] ok %04d-%02d-%02d\n",
                               s_tm.tm_year + 1900, s_tm.tm_mon + 1, s_tm.tm_mday);
 }
+
