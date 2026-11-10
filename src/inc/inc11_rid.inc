@@ -706,7 +706,9 @@ static void ridPage() {
   h += "只保留热点 PlaneRadar-Setup（信道 6）。手机请连这个热点，再访问 192.168.4.1/rid 看结果。";
   h += "点「停止」后最多 6 秒自动连回原来的 WiFi。</div>";
   h += "<div id=tb></div>";
+  h += "<script>";
   h += RID_JS;
+  h += "</script>";
   h += "<div class=foot>被动接收 ASTM F3411 / GB 46750 广播 RID，不发射任何信号</div>";
   h += "</body></html>";
   s_srv->send(200, "text/html; charset=utf-8", h);
