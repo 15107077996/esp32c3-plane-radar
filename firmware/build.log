@@ -41,7 +41,7 @@ Collecting bitarray<4.0,>=3.0.0 (from bitstring~=4.3.1)
 Collecting pycparser (from cffi>=1.14->cryptography~=45.0.3)
   Using cached pycparser-3.12-py3-none-any.whl.metadata (9.7 kB)
 Downloading cryptography-45.0.7-cp311-abi3-manylinux_2_34_x86_64.whl (4.5 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 191.2 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 64.3 MB/s  0:00:00
 Downloading ecdsa-0.19.2-py2.py3-none-any.whl (150 kB)
 Downloading bitstring-4.3.1-py3-none-any.whl (71 kB)
 Using cached reedsolo-1.7.0-py3-none-any.whl (32 kB)
@@ -109,11 +109,11 @@ Compiling .pio/build/esp32c3/src/main.cpp.o
 Building .pio/build/esp32c3/bootloader.bin
 Generating partitions .pio/build/esp32c3/partitions.bin
 Compiling .pio/build/esp32c3/lib30b/SPI/SPI.cpp.o
+Compiling .pio/build/esp32c3/liba33/Wire/Wire.cpp.o
 esptool.py v4.9.0
 Creating esp32c3 image...
 Merged 1 ELF section
 Successfully created esp32c3 image.
-Compiling .pio/build/esp32c3/liba33/Wire/Wire.cpp.o
 Compiling .pio/build/esp32c3/libb64/U8g2/U8g2lib.cpp.o
 Archiving .pio/build/esp32c3/lib30b/libSPI.a
 Indexing .pio/build/esp32c3/lib30b/libSPI.a
@@ -254,8 +254,8 @@ Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_u8toa.c.o
 Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_DataBus.cpp.o
 Archiving .pio/build/esp32c3/libb64/libU8g2.a
 Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_G.cpp.o
-Indexing .pio/build/esp32c3/libb64/libU8g2.a
 Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_GFX.cpp.o
+Indexing .pio/build/esp32c3/libb64/libU8g2.a
 Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_GFX_Library.cpp.o
 Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_TFT.cpp.o
 Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_TFT_18bit.cpp.o
@@ -356,11 +356,9 @@ Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLE2904.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEAddress.cpp.o
 Archiving .pio/build/esp32c3/lib002/libPNGdec.a
 Indexing .pio/build/esp32c3/lib002/libPNGdec.a
-Archiving .pio/build/esp32c3/libd74/libGFX Library for Arduino.a
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEAdvertisedDevice.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEAdvertising.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEBeacon.cpp.o
-Indexing .pio/build/esp32c3/libd74/libGFX Library for Arduino.a
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLECharacteristic.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEClient.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEDescriptor.cpp.o
@@ -368,6 +366,7 @@ Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEDevice.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEEddystoneTLM.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEEddystoneURL.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEExtAdvertising.cpp.o
+Archiving .pio/build/esp32c3/libd74/libGFX Library for Arduino.a
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEHIDDevice.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLERemoteCharacteristic.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLERemoteDescriptor.cpp.o
@@ -385,6 +384,7 @@ Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/aes_
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/cbc_mode.c.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/ccm_mode.c.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/cmac_mode.c.o
+Indexing .pio/build/esp32c3/libd74/libGFX Library for Arduino.a
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/ctr_mode.c.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/ctr_prng.c.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/ecc.c.o
@@ -566,8 +566,8 @@ Compiling .pio/build/esp32c3/FrameworkArduino/HWCDC.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/HardwareSerial.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/IPAddress.cpp.o
 Archiving .pio/build/esp32c3/lib1ce/libWebServer.a
-Indexing .pio/build/esp32c3/lib1ce/libWebServer.a
 Compiling .pio/build/esp32c3/FrameworkArduino/IPv6Address.cpp.o
+Indexing .pio/build/esp32c3/lib1ce/libWebServer.a
 Compiling .pio/build/esp32c3/FrameworkArduino/MD5Builder.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/Print.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/Stream.cpp.o
@@ -614,7 +614,7 @@ Retrieving maximum program size .pio/build/esp32c3/firmware.elf
 Checking size .pio/build/esp32c3/firmware.elf
 Advanced Memory Usage is available via "PlatformIO Home > Project Inspect"
 RAM:   [===       ]  34.4% (used 112604 bytes from 327680 bytes)
-Flash: [=====     ]  52.4% (used 1648308 bytes from 3145728 bytes)
+Flash: [=====     ]  52.4% (used 1648452 bytes from 3145728 bytes)
 Building .pio/build/esp32c3/firmware.bin with action:
   "$PYTHONEXE" "$OBJCOPY" --chip esp32c3 elf2image --flash_mode ${__get_board_flash_mode(__env__)} --flash_freq ${__get_board_f_image(__env__)} --flash_size 4MB --elf-sha256-offset 0xb0 -o $TARGET $SOURCES
 Building .pio/build/esp32c3/firmware.bin
@@ -622,4 +622,4 @@ esptool.py v4.9.0
 Creating esp32c3 image...
 Merged 2 ELF sections
 Successfully created esp32c3 image.
-======================== [SUCCESS] Took 170.73 seconds ========================
+======================== [SUCCESS] Took 122.64 seconds ========================
