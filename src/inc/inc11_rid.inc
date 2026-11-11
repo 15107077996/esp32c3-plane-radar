@@ -240,9 +240,9 @@ static void ridBleTask(void *arg) {
   Serial.println("[rid] s5b cb set");
   delay(60);
   sc->setActiveScan(false);
-  sc->setInterval(320);
-  sc->setWindow(80);
-  Serial.println("[rid] s5c params set itvl=320 win=80");
+  sc->setInterval(200);
+  sc->setWindow(100);
+  Serial.println("[rid] s5c params set itvl=200 win=100");
   delay(60);
   // 用限时窗口（6 秒）+ 循环重启，而不是 duration=0 永久扫描：
   // ble_gap_disc 在 IDF5 的 NimBLE 1.4.3 上首轮可能长时间等 HCI 完成事件，
@@ -273,10 +273,14 @@ static void ridBleTask(void *arg) {
 
 static void ridStart() {
   if (s_ridOn || !s_ridWant) return;
-  if (s_planeTask && millis() - s_ridWantMs < 30000UL) return;
+
 
   Serial.println("[rid] s1 release png");
   releasePngBuf();
+  // 立即让屏幕显示“侦测已开启”：射频就位还要 1 秒多，提示不能等
+  s_ridOn = true;
+  s_ridStartMs = millis();
+  s_ridLastPoll = millis();
 
   // ESP32-C3 是单核芯片，WiFi/BT 共用一套射频与共存状态机：
   //  a) 纯 AP 模式下共存拿不到射频时间片，BT 侧 HCI 会一直等；
@@ -495,7 +499,7 @@ static void ridTick(unsigned long now) {
       Serial.printf("[rid] want pending heap=%u max=%u\n", (unsigned)ESP.getFreeHeap(),
                     (unsigned)ESP.getMaxAllocHeap());
     }
-    if (millis() - s_ridWantMs >= 400UL) { ridStart(); return; }
+    if (millis() - s_ridWantMs >= 20UL) { ridStart(); return; }
   }
 
   if (!s_ridOn) return;
