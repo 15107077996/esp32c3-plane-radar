@@ -14,44 +14,43 @@ jobs:
         run: |
           python3 - <<'PY'
           import io
-          import re
 
-          # 1) 按键：侦测页长按 = 开/关侦测；其它页仍是换量程
           p1='src/inc/inc10_core.inc'
           s=io.open(p1,encoding='utf-8').read()
+
           a1='    s_rangeAuto = false; // manual range choice beats the boot auto-fit'
           assert s.count(a1)==1, 'a1'
           b1='''    if (s_screen == SCR_RID) {
-              // 侦测页长按 = 开/关被动侦测：不用回手机网页，“按一下立即开启”
-              if (s_ridOn || s_ridWant) {
-                s_ridWant = false;
-                s_ridOffReq = true;
-                Serial.println("[key] long -> rid stop");
-              } else {
-                s_ridWant = true;
-                s_ridWantMs = millis();
-                Serial.println("[key] long -> rid start");
-              }
-              return;
+            // 侦测页长按 = 开/关被动侦测：不用回手机网页，按一下立即开启
+            if (s_ridOn || s_ridWant) {
+              s_ridWant = false;
+              s_ridOffReq = true;
+              Serial.println("[key] long -> rid stop");
+            } else {
+              s_ridWant = true;
+              s_ridWantMs = millis();
+              Serial.println("[key] long -> rid start");
             }
-            s_rangeAuto = false; // manual range choice beats the boot auto-fit'''
+            return;
+          }
+          s_rangeAuto = false; // manual range choice beats the boot auto-fit'''
           s=s.replace(a1,b1)
 
           a2='''  } else if (page == SCR_RID) {
-        if (!s_ridOn) {
-          s_ridWant = false; // entering by key: the scan stops when the page is left
-          ridStart();
-        }
-        drawRid();
-      }'''
+            if (!s_ridOn) {
+              s_ridWant = false; // entering by key: the scan stops when the page is left
+              ridStart();
+            }
+            drawRid();
+          }'''
           assert s.count(a2)==1, 'a2'
-          s=s.replace(a2,'''  } else if (page == SCR_RID) {
-        // 进页只画，不自动开射频：侦测由长按 BT 或网页按钮启动
-        drawRid();
-      }''')
+          b2='''  } else if (page == SCR_RID) {
+            // 进页只画，不自动开射频：侦测由长按 BT 或网页按钮启动
+            drawRid();
+          }'''
+          s=s.replace(a2,b2)
           io.open(p1,'w',encoding='utf-8').write(s)
 
-          # 2) 屏幕底部提示改为“长按开启”
           p2='src/inc/inc11b_ridui.inc'
           t=io.open(p2,encoding='utf-8').read()
           a3='txtC("按键启动", 230, C_GRAY);'
