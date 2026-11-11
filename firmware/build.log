@@ -41,7 +41,7 @@ Collecting bitarray<4.0,>=3.0.0 (from bitstring~=4.3.1)
 Collecting pycparser (from cffi>=1.14->cryptography~=45.0.3)
   Using cached pycparser-3.12-py3-none-any.whl.metadata (9.7 kB)
 Downloading cryptography-45.0.7-cp311-abi3-manylinux_2_34_x86_64.whl (4.5 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 59.1 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 64.4 MB/s  0:00:00
 Downloading ecdsa-0.19.2-py2.py3-none-any.whl (150 kB)
 Downloading bitstring-4.3.1-py3-none-any.whl (71 kB)
 Using cached reedsolo-1.7.0-py3-none-any.whl (32 kB)
@@ -252,12 +252,12 @@ Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_string.c.o
 Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_u16toa.c.o
 Compiling .pio/build/esp32c3/libb64/U8g2/clib/u8x8_u8toa.c.o
 Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_DataBus.cpp.o
-Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_G.cpp.o
 Archiving .pio/build/esp32c3/libb64/libU8g2.a
+Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_G.cpp.o
+Indexing .pio/build/esp32c3/libb64/libU8g2.a
 Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_GFX.cpp.o
 Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_GFX_Library.cpp.o
 Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_TFT.cpp.o
-Indexing .pio/build/esp32c3/libb64/libU8g2.a
 Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/Arduino_TFT_18bit.cpp.o
 Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/canvas/Arduino_Canvas.cpp.o
 Compiling .pio/build/esp32c3/libd74/GFX Library for Arduino/canvas/Arduino_Canvas_3bit.cpp.o
@@ -367,9 +367,9 @@ Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEEddystoneTLM.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEEddystoneURL.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEExtAdvertising.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEHIDDevice.cpp.o
-Archiving .pio/build/esp32c3/libd74/libGFX Library for Arduino.a
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLERemoteCharacteristic.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLERemoteDescriptor.cpp.o
+Archiving .pio/build/esp32c3/libd74/libGFX Library for Arduino.a
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLERemoteService.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEScan.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLESecurity.cpp.o
@@ -377,9 +377,9 @@ Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEServer.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEService.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEUUID.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEUtils.cpp.o
+Indexing .pio/build/esp32c3/libd74/libGFX Library for Arduino.a
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/esp_port/esp-hci/src/esp_nimble_hci.c.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/esp_port/port/src/esp_nimble_mem.c.o
-Indexing .pio/build/esp32c3/libd74/libGFX Library for Arduino.a
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/aes_decrypt.c.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/aes_encrypt.c.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/cbc_mode.c.o
@@ -547,12 +547,12 @@ Archiving .pio/build/esp32c3/libe70/libPreferences.a
 Indexing .pio/build/esp32c3/libe70/libPreferences.a
 Compiling .pio/build/esp32c3/lib864/SPIFFS/SPIFFS.cpp.o
 Compiling .pio/build/esp32c3/lib4b6/Update/HttpsOTAUpdate.cpp.o
-Compiling .pio/build/esp32c3/lib4b6/Update/Updater.cpp.o
 Archiving .pio/build/esp32c3/lib67b/libHTTPClient.a
 Indexing .pio/build/esp32c3/lib67b/libHTTPClient.a
-Compiling .pio/build/esp32c3/lib1ce/WebServer/Parsing.cpp.o
 Archiving .pio/build/esp32c3/lib7aa/libFS.a
 Indexing .pio/build/esp32c3/lib7aa/libFS.a
+Compiling .pio/build/esp32c3/lib4b6/Update/Updater.cpp.o
+Compiling .pio/build/esp32c3/lib1ce/WebServer/Parsing.cpp.o
 Compiling .pio/build/esp32c3/lib1ce/WebServer/WebServer.cpp.o
 Archiving .pio/build/esp32c3/lib864/libSPIFFS.a
 Indexing .pio/build/esp32c3/lib864/libSPIFFS.a
@@ -565,9 +565,9 @@ Compiling .pio/build/esp32c3/FrameworkArduino/FunctionalInterrupt.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/HWCDC.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/HardwareSerial.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/IPAddress.cpp.o
+Compiling .pio/build/esp32c3/FrameworkArduino/IPv6Address.cpp.o
 Archiving .pio/build/esp32c3/lib1ce/libWebServer.a
 Indexing .pio/build/esp32c3/lib1ce/libWebServer.a
-Compiling .pio/build/esp32c3/FrameworkArduino/IPv6Address.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/MD5Builder.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/Print.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/Stream.cpp.o
@@ -622,4 +622,4 @@ esptool.py v4.9.0
 Creating esp32c3 image...
 Merged 2 ELF sections
 Successfully created esp32c3 image.
-======================== [SUCCESS] Took 154.78 seconds ========================
+======================== [SUCCESS] Took 145.17 seconds ========================
