@@ -2,7 +2,7 @@
 // 手机天气 App 的数据来自中央气象台/中国天气网：实况是气象站观测、预报是城市
 // 预报。原来只用 Open-Meteo（数值模式输出），清晨谷地会比观测高 3~4 度，天气
 // 现象也常对不上（模式给“阴”、实况是“晴”）。现在以天气网为主源，Open-Meteo
-// 只在天气网连续失败时兜底。
+// 只在天气网失败时兜底。
 static int s_windLvl = 0;   // Beaufort 0..12
 static int s_windFrom = -1; // direction in degrees, -1 = unknown
 static float s_gust = 0.0f; // gust km/h
@@ -80,7 +80,7 @@ static int cw2wmo(int fa) {
   return 2;
 }
 
-// 从 "var xxx ={...}" 里取出那一段 JSON
+// 从 "var xxx ={...}" 里取出那段 JSON
 static String cwJsonPart(const String &body, const char *key) {
   int k = body.indexOf(key);
   if (k < 0) return "";
@@ -244,14 +244,11 @@ static bool fetchWeatherCn() {
   return ok;
 }
 
-// 主入口：先天气网，失败再退回 Open-Meteo（数值模式，仅兜底）
-static bool fetchMeteo() {
+// 主入口：先天气网，失败再退回 Open-Meteo（数值模式，仅兜底）。
+// 保留 fetchOpenMeteo 这个名字，setup() 和 tickForecast() 的调用点不用改。
+static bool fetchOpenMeteo() {
   if (fetchWeatherCn()) return true;
   Serial.println("[cw] fallback open-meteo");
-  return fetchOpenMeteo();
-}
-
-static bool fetchOpenMeteo() {
   unsigned long t0 = millis();
   char url[512];
   snprintf(url, sizeof(url),
@@ -282,9 +279,6 @@ static bool fetchOpenMeteo() {
         s_windFrom = cur["wind_direction_10m"] | -1;
         s_gust = cur["wind_gusts_10m"] | 0.0f;
         s_windLvl = beaufort(s_wind);
-        s_cwWeather = "";
-        s_cwWs = "";
-        s_cwUpd = "";
       }
       JsonObject daily = doc["daily"];
       JsonArray dcode = daily["weather_code"];
