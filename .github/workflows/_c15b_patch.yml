@@ -1,0 +1,33 @@
+name: c15b patch
+on:
+  push:
+    paths:
+      - .github/workflows/_c15b_patch.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: apply
+        run: |
+          python3 - <<'PY'
+          import io
+          p='src/inc/inc11_rid.inc'
+          s=io.open(p,encoding='utf-8').read()
+          a='256614000, 1147650000, 1100, 1080, 256610000, 1147640000'
+          b='256650000, 1147720000, 1100, 1080, 256645000, 1147710000'
+          assert s.count(a)==1
+          s=s.replace(a,b)
+          io.open(p,'w',encoding='utf-8').write(s)
+          print('ok')
+          PY
+      - name: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/_c15b_patch.yml
+          git add -A
+          git commit -m "test(rid): 注入帧位移到约 800m 外，便于核对雷达落点"
+          git push
