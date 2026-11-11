@@ -432,7 +432,7 @@ static void ridInjectTest() {
   char mac[18] = "aa:bb:cc:00:11:22";
   uint8_t f[100];
   ridBuildTestFrames(f, "TEST-RID-0001", "OP-TEST-001",
-                     256614000, 1147650000, 1100, 1080, 256610000, 1147640000);
+                     256650000, 1147720000, 1100, 1080, 256645000, 1147710000);
   for (int k = 0; k < 4; k++) ridFeed(f + k * 25, 25, mac, 0, 2);
   ridDrain();
   Serial.printf("[rid] inject done frames=%d n=%d\n", s_ridFrames, s_ridCount);
@@ -462,7 +462,7 @@ static void ridInjectWifiTest() {
   fr[i++] = 0xF0; fr[i++] = 25; fr[i++] = 4;   // MessagePack：size=25，4 条
   uint8_t f[100];
   ridBuildTestFrames(f, "TEST-RID-WIFI", "OP-WIFI-001",
-                     256614000, 1147650000, 1100, 1080, 256610000, 1147640000);
+                     256650000, 1147720000, 1100, 1080, 256645000, 1147710000);
   memcpy(fr + i, f, 100);
   ridWifiFrame(fr, 150);
   ridDrain();
