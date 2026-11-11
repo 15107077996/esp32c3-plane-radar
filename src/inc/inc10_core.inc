@@ -106,7 +106,7 @@ static void handleButton() {
   if (!s_stable && !s_longFired && now - s_pressTime >= HOLD_MS) {
     s_longFired = true;
     s_suppressRelease = true;
-    s_rangeAuto = false; // manual range choice beats the boot auto-fit
+    if (ridKeyLongAction()) return; s_rangeAuto = false;
     s_rangeIdx = (s_rangeIdx + 1) % RANGE_N;
     Serial.printf("[key] long range -> %.0fkm\n", rangeKm());
     enterPage(SCR_PLANES);

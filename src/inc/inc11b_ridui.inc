@@ -125,6 +125,21 @@ static void drawRid() {
     txtC(l, 230, C_CYAN);
   } else {
     useFont(u8g2_font_unifont_t_chinese4);
-    txtC("按键启动", 230, C_GRAY);
+    txtC("长按开启", 230, C_GRAY);
   }
+}
+
+// 侦测页长按 BT = 开/关被动侦测；其它页长按仍是换量程（调用方继续往下走）。
+static bool ridKeyLongAction() {
+  if (s_screen != SCR_RID) return false;
+  if (s_ridOn || s_ridWant) {
+    s_ridWant = false;
+    s_ridOffReq = true;
+    Serial.println("[key] long -> rid stop");
+  } else {
+    s_ridWant = true;
+    s_ridWantMs = millis();
+    Serial.println("[key] long -> rid start");
+  }
+  return true;
 }
