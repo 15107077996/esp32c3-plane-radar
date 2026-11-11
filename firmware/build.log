@@ -41,7 +41,7 @@ Collecting bitarray<4.0,>=3.0.0 (from bitstring~=4.3.1)
 Collecting pycparser (from cffi>=1.14->cryptography~=45.0.3)
   Using cached pycparser-3.12-py3-none-any.whl.metadata (9.7 kB)
 Downloading cryptography-45.0.7-cp311-abi3-manylinux_2_34_x86_64.whl (4.5 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 71.7 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 209.8 MB/s  0:00:00
 Downloading ecdsa-0.19.2-py2.py3-none-any.whl (150 kB)
 Downloading bitstring-4.3.1-py3-none-any.whl (71 kB)
 Using cached reedsolo-1.7.0-py3-none-any.whl (32 kB)
@@ -354,14 +354,15 @@ Compiling .pio/build/esp32c3/lib002/PNGdec/inftrees.c.o
 Compiling .pio/build/esp32c3/lib002/PNGdec/zutil.c.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLE2904.cpp.o
 Archiving .pio/build/esp32c3/lib002/libPNGdec.a
-Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEAddress.cpp.o
+Archiving .pio/build/esp32c3/libd74/libGFX Library for Arduino.a
 Indexing .pio/build/esp32c3/lib002/libPNGdec.a
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEAddress.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEAdvertisedDevice.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEAdvertising.cpp.o
+Indexing .pio/build/esp32c3/libd74/libGFX Library for Arduino.a
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEBeacon.cpp.o
 Archiving .pio/build/esp32c3/libd74/libGFX Library for Arduino.a
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLECharacteristic.cpp.o
-Indexing .pio/build/esp32c3/libd74/libGFX Library for Arduino.a
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEClient.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEDescriptor.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEDevice.cpp.o
@@ -523,8 +524,8 @@ Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/porting/npl/freertos/s
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/porting/npl/freertos/src/npl_os_freertos.c.o
 Compiling .pio/build/esp32c3/lib989/WiFi/WiFi.cpp.o
 Compiling .pio/build/esp32c3/lib989/WiFi/WiFiAP.cpp.o
-Compiling .pio/build/esp32c3/lib989/WiFi/WiFiClient.cpp.o
 Archiving .pio/build/esp32c3/lib6ba/libNimBLE-Arduino.a
+Compiling .pio/build/esp32c3/lib989/WiFi/WiFiClient.cpp.o
 Indexing .pio/build/esp32c3/lib6ba/libNimBLE-Arduino.a
 Compiling .pio/build/esp32c3/lib989/WiFi/WiFiGeneric.cpp.o
 Compiling .pio/build/esp32c3/lib989/WiFi/WiFiMulti.cpp.o
@@ -550,9 +551,9 @@ Compiling .pio/build/esp32c3/lib4b6/Update/HttpsOTAUpdate.cpp.o
 Archiving .pio/build/esp32c3/lib67b/libHTTPClient.a
 Indexing .pio/build/esp32c3/lib67b/libHTTPClient.a
 Compiling .pio/build/esp32c3/lib4b6/Update/Updater.cpp.o
-Compiling .pio/build/esp32c3/lib1ce/WebServer/Parsing.cpp.o
 Archiving .pio/build/esp32c3/lib7aa/libFS.a
 Indexing .pio/build/esp32c3/lib7aa/libFS.a
+Compiling .pio/build/esp32c3/lib1ce/WebServer/Parsing.cpp.o
 Compiling .pio/build/esp32c3/lib1ce/WebServer/WebServer.cpp.o
 Archiving .pio/build/esp32c3/lib864/libSPIFFS.a
 Indexing .pio/build/esp32c3/lib864/libSPIFFS.a
@@ -565,9 +566,9 @@ Compiling .pio/build/esp32c3/FrameworkArduino/FunctionalInterrupt.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/HWCDC.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/HardwareSerial.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/IPAddress.cpp.o
-Compiling .pio/build/esp32c3/FrameworkArduino/IPv6Address.cpp.o
 Archiving .pio/build/esp32c3/lib1ce/libWebServer.a
 Indexing .pio/build/esp32c3/lib1ce/libWebServer.a
+Compiling .pio/build/esp32c3/FrameworkArduino/IPv6Address.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/MD5Builder.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/Print.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/Stream.cpp.o
@@ -622,4 +623,4 @@ esptool.py v4.9.0
 Creating esp32c3 image...
 Merged 2 ELF sections
 Successfully created esp32c3 image.
-======================== [SUCCESS] Took 172.10 seconds ========================
+======================== [SUCCESS] Took 184.19 seconds ========================
