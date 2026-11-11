@@ -1,0 +1,50 @@
+name: c17 patch
+on:
+  push:
+    paths:
+      - .github/workflows/_c17_patch.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: apply
+        run: |
+          python3 - <<'PY'
+          import io
+          p='src/inc/inc11_rid.inc'
+          s=io.open(p,encoding='utf-8').read()
+
+          a1='  if (s_planeTask && millis() - s_ridWantMs < 30000UL) return;'
+          assert s.count(a1)==1, 'a1'
+          s=s.replace(a1,'')
+
+          a2='sc->setInterval(320);\n  sc->setWindow(80);'
+          assert s.count(a2)==1, 'a2'
+          s=s.replace(a2,'sc->setInterval(200);\n  sc->setWindow(100);')
+
+          a3='Serial.println("[rid] s5c params set itvl=320 win=80");'
+          assert s.count(a3)==1, 'a3'
+          s=s.replace(a3,'Serial.println("[rid] s5c params set itvl=200 win=100");')
+
+          a4='if (millis() - s_ridWantMs >= 400UL) { ridStart(); return; }'
+          assert s.count(a4)==1, 'a4'
+          s=s.replace(a4,'if (millis() - s_ridWantMs >= 20UL) { ridStart(); return; }')
+
+          a5='Serial.println("[rid] s1 release png");\n  releasePngBuf();'
+          assert s.count(a5)==1, 'a5'
+          s=s.replace(a5, a5 + '\n  // 立即让屏幕显示“侦测已开启”：射频就位还要 1 秒多，提示不能等\n  s_ridOn = true;\n  s_ridStartMs = millis();\n  s_ridLastPoll = millis();')
+
+          io.open(p,'w',encoding='utf-8').write(s)
+          print('patch ok')
+          PY
+      - name: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/_c17_patch.yml
+          git add -A
+          git commit -m "feat(rid): 开启即生效（去 30s 保护、20ms 起启、BLE 扫描占空 50%）"
+          git push
