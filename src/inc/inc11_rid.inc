@@ -539,7 +539,7 @@ static const char *ridUaName(uint8_t t) {
   }
 }
 
-static void drawRid() {
+static void drawRidText() {
   gfx->fillScreen(C_BLACK);
   gfx->drawCircle(R_CX, R_CY, R_R, C_DKGREEN);
   useFont(u8g2_font_unifont_t_chinese4);

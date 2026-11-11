@@ -180,7 +180,7 @@ static void tickRain(unsigned long now) {
 static unsigned long s_ridDrawMs = 0;
 static void tickRid(unsigned long now) {
   if (s_ridWant && !s_ridOn && now - s_ridStartMs > 60000) ridStart();
-  if (now - s_ridDrawMs >= 1000) {
+  if (now - s_ridDrawMs >= 250) {
     s_ridDrawMs = now;
     drawRid();
   }

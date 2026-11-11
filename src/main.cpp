@@ -11,4 +11,5 @@
 #include "inc/inc08_forecast.inc"
 #include "inc/inc09_rain.inc"
 #include "inc/inc11_rid.inc"
+#include "inc/inc11b_ridui.inc"
 #include "inc/inc10_core.inc"
