@@ -1,0 +1,30 @@
+name: c19 image try2
+on:
+  push:
+    paths:
+      - .github/workflows/_c19_img2.yml
+permissions:
+  contents: write
+jobs:
+  add:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: fetch
+        run: |
+          set +e
+          CODE=$(curl -sSL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36" -e "https://www.doubao.com/" -o images/rid.jpg -w "%{http_code} %{content_type} %{size_download}" "https://aka.doubaocdn.com/s/1RaT23rKqF")
+          echo "$CODE" > images/_imgdiag.txt
+          python3 -c "d=open('images/rid.jpg','rb').read(); print('bytes',len(d),'magic',d[:4].hex())" >> images/_imgdiag.txt 2>&1
+          FRONT=$(head -c 120 images/rid.jpg | tr -d '\0')
+          echo "front: $FRONT" >> images/_imgdiag.txt
+          set -e
+          python3 -c "d=open('images/rid.jpg','rb').read(); import sys; sys.exit(0 if d[:2]==b'\xff\xd8' and len(d)>150000 else 1)" && rm -f images/_imgdiag.txt && echo OKIMAGE=1 || echo OKIMAGE=0
+      - name: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f .github/workflows/_c19_img2.yml .github/workflows/_c19_img.yml || true
+          git add -A
+          git commit -m "ci: rid 实拍图入库尝试" || true
+          git push || true
