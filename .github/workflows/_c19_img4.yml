@@ -1,0 +1,27 @@
+name: c19 readme fix
+on:
+  push:
+    paths:
+      - .github/workflows/_c19_img4.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: readme
+        run: |
+          sed -i 's#selftest.jpg) |#selftest.jpg) | ![侦测](images/rid.jpg) |#' README.md
+          sed -i 's#1.4.6-c18#1.4.6-c19#g' README.md
+          sed -i 's#1,705,008 B#1,705,152 B#g' README.md
+          sed -i '/- `c18` BLE 扫描占空回退 25%/a - `c19` 第 6 页长按板载 BT（BOOT）键即可开关侦测（其他页长按仍换量程），实测 1.86 秒射频就位、4.8 秒停止并回连。' README.md
+          sed -n '7,20p' README.md
+      - name: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f .github/workflows/_c19_img4.yml
+          git add -A
+          git commit -m "docs: 修正图片行与版本号至 1.4.6-c19"
+          git push
