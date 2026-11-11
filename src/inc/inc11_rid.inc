@@ -240,19 +240,22 @@ static void ridBleTask(void *arg) {
   Serial.println("[rid] s5b cb set");
   delay(60);
   sc->setActiveScan(false);
-  sc->setInterval(200);
-  sc->setWindow(100);
-  Serial.println("[rid] s5c params set itvl=200 win=100");
+  sc->setInterval(320);
+  sc->setWindow(80);
+  Serial.println("[rid] s5c params set itvl=320 win=80");
   delay(60);
   // 用限时窗口（6 秒）+ 循环重启，而不是 duration=0 永久扫描：
   // ble_gap_disc 在 IDF5 的 NimBLE 1.4.3 上首轮可能长时间等 HCI 完成事件，
   // 永久扫描会把 BLE 任务卡死在这里（c7 实测 s5c 之后无 s5d）。限时窗口
   // 至少让 start() 有返回机会，返回后立即重启，扫描仍然是连续的。
+  int loopN = 0;
   while (s_ridBleTaskRun) {
-    Serial.printf("[rid] s5c2 gap_disc 6s heap=%u\n", (unsigned)ESP.getFreeHeap());
+    if ((loopN++ % 5) == 0)
+      Serial.printf("[rid] s5c2 gap_disc 6s heap=%u\n", (unsigned)ESP.getFreeHeap());
     sc->start(6, false);
-    Serial.printf("[rid] s5d start ret heap=%u ble=%d\n",
-                  (unsigned)ESP.getFreeHeap(), s_ridBle ? 1 : 0);
+    if ((loopN % 5) == 0)
+      Serial.printf("[rid] s5d start ret heap=%u ble=%d\n",
+                    (unsigned)ESP.getFreeHeap(), s_ridBle ? 1 : 0);
     s_ridBle = true;
     delay(60);
   }
@@ -511,7 +514,7 @@ static void ridTick(unsigned long now) {
     ridStop();
     return;
   }
-  if (now - s_ridHbdMs >= 10000UL) {
+  if (now - s_ridHbdMs >= 30000UL) {
     s_ridHbdMs = now;
     Serial.printf("[rid] hb %lu s: ble=%d wifi=%d frames=%d drones=%d heap=%u\n",
                   (now - s_ridStartMs) / 1000UL, s_ridBleN, s_ridWifiN,
