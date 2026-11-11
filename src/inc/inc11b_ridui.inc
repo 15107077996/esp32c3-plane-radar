@@ -57,10 +57,10 @@ static void ridRangeLabel(char *buf, int n) {
 static void drawRid() {
   const int cx = R_CX, cy = R_CY;
   const int R = 80;
-  // 只擦本页用到的三块（标题、雷达区、底部两行），不用整屏 fillScreen，避免闪
+  // 只擦本页用到的三块（标题、雷达区、底部三行），不用整屏 fillScreen，避免闪
   gfx->fillRect(0, 0, 240, 44, C_BLACK);
   gfx->fillRect(cx - 92, cy - 92, 184, 184, C_BLACK);
-  gfx->fillRect(0, 200, 240, 40, C_BLACK);
+  gfx->fillRect(0, 198, 240, 42, C_BLACK);
 
   s_ridSweepDeg += 8.0f;
   if (s_ridSweepDeg >= 360.0f) s_ridSweepDeg -= 360.0f;
@@ -108,19 +108,23 @@ static void drawRid() {
   useFont(u8g2_font_unifont_t_chinese4);
   txtC("无人机侦测", 18, C_YELLOW);
 
-  // 底部：链路计数 + 当前量程与架数
+  // 底部三行：量程/架数、开启状态、链路计数
   char l[48];
   char rl[12];
   ridRangeLabel(rl, sizeof(rl));
-  if (!s_ridOn) {
-    useFont(u8g2_font_unifont_t_chinese4);
-    txtC("未开启，按键启动", 210, C_GRAY);
-  } else {
-    useFont(u8g2_font_helvB08_tr);
-    snprintf(l, sizeof(l), "BLE %d  BC %d", s_ridBleN, s_ridWifiN);
-    txtC(l, 210, C_CYAN);
-  }
   useFont(u8g2_font_unifont_t_chinese4);
   snprintf(l, sizeof(l), "%s · %d架", rl, s_ridCount);
-  txtC(l, 228, s_ridCount ? C_GREEN : C_GRAY);
+  txtC(l, 192, s_ridCount ? C_GREEN : C_GRAY);
+
+  // 开启状态放在最醒目的位置，网页点“开启侦测”后 250ms 内就会变成这行
+  txtC(s_ridOn ? "侦测已开启" : "侦测未开启", 212, s_ridOn ? C_GREEN : C_GRAY);
+
+  if (s_ridOn) {
+    useFont(u8g2_font_helvB08_tr);
+    snprintf(l, sizeof(l), "BLE %d  BC %d", s_ridBleN, s_ridWifiN);
+    txtC(l, 230, C_CYAN);
+  } else {
+    useFont(u8g2_font_unifont_t_chinese4);
+    txtC("按键启动", 230, C_GRAY);
+  }
 }
