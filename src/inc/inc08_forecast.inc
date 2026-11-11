@@ -33,12 +33,13 @@ static void renderForecast() {
     // current weather icon + description (center)
     drawWxIcon(120, 32, s_code, 11);
     useFont(u8g2_font_unifont_t_chinese4);
-    txtC(wmoZh(s_code), 58, C_WHITE);
+    // 实况文字优先用天气网原文（“晴/多云/小雨转阴”），与手机一致
+    txtC(s_cwWeather.length() ? s_cwWeather.c_str() : wmoZh(s_code), 58, C_WHITE);
     // current temp (green) and today's high (yellow) on the right
     txtTemp10(s_temp, 168, 28, C_GREEN);
     useFont(u8g2_font_helvB10_tr);
     txtAt("/", 168, 46, C_YELLOW);
-    txtTemp10(s_days[0].tmax, 168 + textW("/"), 46, C_YELLOW);
+    txtTemp10(s_tmaxToday, 168 + textW("/"), 46, C_YELLOW);
   } else {
     useFont(u8g2_font_helvB10_tr);
     txtC("LOADING...", 50, C_GRAY);
@@ -91,18 +92,28 @@ static void renderForecast() {
     useFont(u8g2_font_helvB08_tr);
     txtAt(hb, 190 - textW(hb) / 2, 184, C_YELLOW);
 
-    // Wind level (Beaufort), with the direction when the unit knows it.
+    // Wind: 天气网直接给“东北风 1级”，没有就退回 Open-Meteo 的方位换算
     char wb[40];
-    if (s_windFrom >= 0)
+    if (s_cwWs.length())
+      snprintf(wb, sizeof(wb), "%s", s_cwWs.c_str());
+    else if (s_windFrom >= 0)
       snprintf(wb, sizeof(wb), "%s风 %d级", windDirZh(s_windFrom), s_windLvl);
     else
       snprintf(wb, sizeof(wb), "风 %d级", s_windLvl);
     useFont(u8g2_font_unifont_t_chinese4);
     txtC(wb, 200, C_CYAN);
 
-    // Threshold alert wins the last line; otherwise show the update clock.
+    // Official warning wins the last line; otherwise the observation clock.
     if (s_alert.length()) {
-      txtC(s_alert.c_str(), 214, C_RED);
+      // 官方预警标题常常很长，切到 12 字以内再居中
+      char ab[64];
+      snprintf(ab, sizeof(ab), "%s", s_alert.c_str());
+      txtC(ab, 214, C_RED);
+    } else if (s_cwUpd.length()) {
+      char u[24];
+      snprintf(u, sizeof(u), "UPD %s", s_cwUpd.c_str());
+      useFont(u8g2_font_helvB08_tr);
+      txtAt(u, 120 - textW(u) / 2, 214, C_GRAY);
     } else if (s_timeOk) {
       char u[24];
       snprintf(u, sizeof(u), "UPD %02d:%02d", s_tm.tm_hour, s_tm.tm_min);
