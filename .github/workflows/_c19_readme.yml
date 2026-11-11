@@ -1,0 +1,26 @@
+name: c19 readme
+on:
+  push:
+    paths:
+      - .github/workflows/_c19_readme.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: apply
+        run: |
+          sed -i 's#并直接跳到雷达页。#并跳到雷达页；**在无人机侦测页长按 BT 键 = 开启/停止侦测**。#' README.md
+          sed -i 's#\*\*不是按按键开启的\*\*：按键只是把屏幕切到那一页做显示，侦测本身由手机网页#**在第 6 页长按板载 BT（BOOT）键**即可开启，再长按一次停止并自动恢复联网；也可以由手机网页#' README.md
+          sed -i '/| 操作 | 结果 |/a | **长按板载 BT（BOOT）键**（在侦测页） | 不用手机网页也能开启；已开启时再长按一次即停止并恢复联网 |' README.md
+          grep -n '长按' README.md | head -n 24
+      - name: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/_c19_readme.yml
+          git add -A
+          git commit -m "docs: README 同步侦测页长按 BT 开关"
+          git push
