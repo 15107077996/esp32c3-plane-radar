@@ -261,7 +261,6 @@ void setup() {
   WiFi.setSleep(false);
   WiFi.softAP("PlaneRadar-Setup");
   Serial.println("[dns] pin 114.114.114.114 / 223.5.5.5");
-  WiFi.config(IPAddress(0, 0, 0, 0), IPAddress(0, 0, 0, 0), IPAddress(0, 0, 0, 0), IPAddress(114, 114, 114, 114), IPAddress(223, 5, 5, 5));
   WiFi.begin(s_ssid.c_str(), s_pass.c_str());
   useFont(u8g2_font_helvB10_tr);
   txtC("WIFI...", 110, C_YELLOW);
@@ -278,6 +277,8 @@ void setup() {
   }
   Serial.printf("[wifi] %s rssi=%d\n", WiFi.localIP().toString().c_str(),
                 WiFi.RSSI());
+  WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, IPAddress(114, 114, 114, 114), IPAddress(223, 5, 5, 5));
+  Serial.println("[dns] pinned after connect");
   startWeb();
   Serial.printf("[web] lan http://%s  ap http://%s\n",
                 WiFi.localIP().toString().c_str(),
