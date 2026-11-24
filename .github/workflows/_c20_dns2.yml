@@ -1,0 +1,33 @@
+name: c20 dns fix2
+on:
+  push:
+    paths:
+      - .github/workflows/_c20_dns2.yml
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: patch
+        run: |
+          sed -i '/dnsDhcp/d;/WiFi.setDNS/d' src/inc/inc10_core.inc
+          sed -i 's#^  WiFi.begin(s_ssid.c_str(), s_pass.c_str());$#  Serial.println("[dns] pin 114.114.114.114 / 223.5.5.5");\n  WiFi.config(IPAddress(0, 0, 0, 0), IPAddress(0, 0, 0, 0), IPAddress(0, 0, 0, 0), IPAddress(114, 114, 114, 114), IPAddress(223, 5, 5, 5));\n  WiFi.begin(s_ssid.c_str(), s_pass.c_str());#' src/inc/inc10_core.inc
+          echo "--- result ---"
+          sed -n '255,272p' src/inc/inc10_core.inc
+          A=$(grep -c 'dnsDhcp' src/inc/inc10_core.inc || true)
+          B=$(grep -c 'WiFi.config' src/inc/inc10_core.inc || true)
+          C=$(grep -c 'WiFi.begin(s_ssid' src/inc/inc10_core.inc || true)
+          echo "dnsDhcp=$A config=$B begin=$C"
+          test "$A" -eq 0
+          test "$B" -eq 1
+          test "$C" -eq 1
+      - name: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/_c20_dns2.yml
+          git add -A
+          git commit -m "fix(dns): 改用 WiFi.config 固定 DNS（核心无 setDNS）"
+          git push
