@@ -8,7 +8,7 @@ If you like PlatformIO, please:
 Processing esp32c3 (platform: espressif32@6.12.0; board: esp32-c3-devkitm-1; framework: arduino)
 --------------------------------------------------------------------------------
 Platform Manager: Installing espressif32 @ 6.12.0
-Downloading 0% 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%
+Downloading 0% 10% 20% 30% 40% 50% 60% 70% 80%
 Unpacking 0% 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%
 Platform Manager: espressif32@6.12.0 has been installed!
 Tool Manager: Installing espressif/toolchain-riscv32-esp @ 8.4.0+2021r2-patch5
@@ -20,7 +20,7 @@ Downloading 0% 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%
 Unpacking 0% 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%
 Tool Manager: framework-arduinoespressif32@3.20017.241212+sha.dcc1105b has been installed!
 Tool Manager: Installing platformio/tool-esptoolpy @ ~2.40900.0
-Downloading 0% 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%
+Downloading 0% 10% 20% 30% 40%
 Unpacking 0% 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%
 Collecting cryptography~=45.0.3
   Downloading cryptography-45.0.7-cp311-abi3-manylinux_2_34_x86_64.whl.metadata (5.7 kB)
@@ -33,33 +33,33 @@ Collecting reedsolo~=1.7.0
 Collecting intelhex~=2.3.0
   Using cached intelhex-2.3.0-py2.py3-none-any.whl.metadata (2.7 kB)
 Collecting cffi>=1.14 (from cryptography~=45.0.3)
-  Using cached cffi-2.1.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.5 kB)
+  Downloading cffi-2.1.1-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.5 kB)
 Collecting six>=1.9.0 (from ecdsa~=0.19.1)
   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
 Collecting bitarray<4.0,>=3.0.0 (from bitstring~=4.3.1)
-  Downloading bitarray-3.12.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (40 kB)
+  Downloading bitarray-3.12.4-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (40 kB)
 Collecting pycparser (from cffi>=1.14->cryptography~=45.0.3)
-  Using cached pycparser-3.12-py3-none-any.whl.metadata (9.7 kB)
+  Downloading pycparser-3.12-py3-none-any.whl.metadata (9.7 kB)
 Downloading cryptography-45.0.7-cp311-abi3-manylinux_2_34_x86_64.whl (4.5 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 73.2 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 36.9 MB/s  0:00:00
 Downloading ecdsa-0.19.2-py2.py3-none-any.whl (150 kB)
 Downloading bitstring-4.3.1-py3-none-any.whl (71 kB)
 Using cached reedsolo-1.7.0-py3-none-any.whl (32 kB)
 Using cached intelhex-2.3.0-py2.py3-none-any.whl (50 kB)
-Downloading bitarray-3.12.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (404 kB)
-Using cached cffi-2.1.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (221 kB)
+Downloading bitarray-3.12.4-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (402 kB)
+Downloading cffi-2.1.1-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (221 kB)
 Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
-Using cached pycparser-3.12-py3-none-any.whl (62 kB)
+Downloading pycparser-3.12-py3-none-any.whl (62 kB)
 Installing collected packages: reedsolo, intelhex, six, pycparser, bitarray, ecdsa, cffi, bitstring, cryptography
 
-Successfully installed bitarray-3.12.3 bitstring-4.3.1 cffi-2.1.1 cryptography-45.0.7 ecdsa-0.19.2 intelhex-2.3.0 pycparser-3.12 reedsolo-1.7.0 six-1.17.0
+Successfully installed bitarray-3.12.4 bitstring-4.3.1 cffi-2.1.1 cryptography-45.0.7 ecdsa-0.19.2 intelhex-2.3.0 pycparser-3.12 reedsolo-1.7.0 six-1.17.0
 Tool Manager: tool-esptoolpy@2.40900.250804 has been installed!
 Tool Manager: Installing platformio/tool-scons @ ~4.41101.0
-Downloading 0% 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%
+Downloading 0% 10% 20% 30% 40%
 Unpacking 0% 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%
 Tool Manager: tool-scons@4.41101.0 has been installed!
 Library Manager: Installing bblanchon/ArduinoJson @ 7.1.0
-Downloading 0% 10% 20% 30% 40% 50% 60% 70% 80% 90%
+Downloading 0% 10%
 Unpacking 0% 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%
 Library Manager: ArduinoJson@7.1.0 has been installed!
 Library Manager: Installing moononournation/GFX Library for Arduino @ 1.4.9
@@ -67,7 +67,7 @@ Downloading 0% 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%
 Unpacking 0% 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%
 Library Manager: GFX Library for Arduino@1.4.9 has been installed!
 Library Manager: Installing bitbank2/PNGdec @ 1.0.1
-Downloading 0% 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%
+Downloading 0% 10% 20%
 Unpacking 0% 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%
 Library Manager: PNGdec@1.0.1 has been installed!
 Library Manager: Installing olikraus/U8g2 @ ^2.35.0
@@ -75,7 +75,7 @@ Downloading 0% 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%
 Unpacking 0% 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%
 Library Manager: U8g2@2.36.18 has been installed!
 Library Manager: Installing h2zero/NimBLE-Arduino @ 1.4.3
-Downloading 0% 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%
+Downloading 0% 10% 20% 30% 40% 50% 60% 70% 80%
 Unpacking 0% 10% 20% 30% 40% 50% 60% 70% 80% 90% 100%
 Library Manager: NimBLE-Arduino@1.4.3 has been installed!
 Verbose mode can be enabled via `-v, --verbose` option
@@ -352,21 +352,20 @@ Compiling .pio/build/esp32c3/lib002/PNGdec/inffast.c.o
 Compiling .pio/build/esp32c3/lib002/PNGdec/inflate.c.o
 Compiling .pio/build/esp32c3/lib002/PNGdec/inftrees.c.o
 Compiling .pio/build/esp32c3/lib002/PNGdec/zutil.c.o
+Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLE2904.cpp.o
 Archiving .pio/build/esp32c3/lib002/libPNGdec.a
 Indexing .pio/build/esp32c3/lib002/libPNGdec.a
-Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLE2904.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEAddress.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEAdvertisedDevice.cpp.o
-Archiving .pio/build/esp32c3/libd74/libGFX Library for Arduino.a
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEAdvertising.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEBeacon.cpp.o
-Indexing .pio/build/esp32c3/libd74/libGFX Library for Arduino.a
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLECharacteristic.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEClient.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEDescriptor.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEDevice.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEEddystoneTLM.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEEddystoneURL.cpp.o
+Archiving .pio/build/esp32c3/libd74/libGFX Library for Arduino.a
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEExtAdvertising.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEHIDDevice.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLERemoteCharacteristic.cpp.o
@@ -378,6 +377,7 @@ Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEServer.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEService.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEUUID.cpp.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/NimBLEUtils.cpp.o
+Indexing .pio/build/esp32c3/libd74/libGFX Library for Arduino.a
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/esp_port/esp-hci/src/esp_nimble_hci.c.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/esp_port/port/src/esp_nimble_mem.c.o
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/ext/tinycrypt/src/aes_decrypt.c.o
@@ -523,8 +523,8 @@ Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/porting/npl/freertos/s
 Compiling .pio/build/esp32c3/lib6ba/NimBLE-Arduino/nimble/porting/npl/freertos/src/npl_os_freertos.c.o
 Compiling .pio/build/esp32c3/lib989/WiFi/WiFi.cpp.o
 Compiling .pio/build/esp32c3/lib989/WiFi/WiFiAP.cpp.o
-Archiving .pio/build/esp32c3/lib6ba/libNimBLE-Arduino.a
 Compiling .pio/build/esp32c3/lib989/WiFi/WiFiClient.cpp.o
+Archiving .pio/build/esp32c3/lib6ba/libNimBLE-Arduino.a
 Indexing .pio/build/esp32c3/lib6ba/libNimBLE-Arduino.a
 Compiling .pio/build/esp32c3/lib989/WiFi/WiFiGeneric.cpp.o
 Compiling .pio/build/esp32c3/lib989/WiFi/WiFiMulti.cpp.o
@@ -547,16 +547,15 @@ Archiving .pio/build/esp32c3/libe70/libPreferences.a
 Indexing .pio/build/esp32c3/libe70/libPreferences.a
 Compiling .pio/build/esp32c3/lib864/SPIFFS/SPIFFS.cpp.o
 Compiling .pio/build/esp32c3/lib4b6/Update/HttpsOTAUpdate.cpp.o
-Compiling .pio/build/esp32c3/lib4b6/Update/Updater.cpp.o
 Archiving .pio/build/esp32c3/lib67b/libHTTPClient.a
 Indexing .pio/build/esp32c3/lib67b/libHTTPClient.a
 Compiling .pio/build/esp32c3/lib4b6/Update/Updater.cpp.o
 Compiling .pio/build/esp32c3/lib1ce/WebServer/Parsing.cpp.o
-Archiving .pio/build/esp32c3/lib864/libSPIFFS.a
 Archiving .pio/build/esp32c3/lib7aa/libFS.a
-Indexing .pio/build/esp32c3/lib864/libSPIFFS.a
 Indexing .pio/build/esp32c3/lib7aa/libFS.a
 Compiling .pio/build/esp32c3/lib1ce/WebServer/WebServer.cpp.o
+Archiving .pio/build/esp32c3/lib864/libSPIFFS.a
+Indexing .pio/build/esp32c3/lib864/libSPIFFS.a
 Compiling .pio/build/esp32c3/lib1ce/WebServer/detail/mimetable.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/Esp.cpp.o
 Archiving .pio/build/esp32c3/lib4b6/libUpdate.a
@@ -566,9 +565,9 @@ Compiling .pio/build/esp32c3/FrameworkArduino/FunctionalInterrupt.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/HWCDC.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/HardwareSerial.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/IPAddress.cpp.o
-Compiling .pio/build/esp32c3/FrameworkArduino/IPv6Address.cpp.o
 Archiving .pio/build/esp32c3/lib1ce/libWebServer.a
 Indexing .pio/build/esp32c3/lib1ce/libWebServer.a
+Compiling .pio/build/esp32c3/FrameworkArduino/IPv6Address.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/MD5Builder.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/Print.cpp.o
 Compiling .pio/build/esp32c3/FrameworkArduino/Stream.cpp.o
@@ -623,4 +622,4 @@ esptool.py v4.9.0
 Creating esp32c3 image...
 Merged 2 ELF sections
 Successfully created esp32c3 image.
-======================== [SUCCESS] Took 170.17 seconds ========================
+======================== [SUCCESS] Took 124.80 seconds ========================
