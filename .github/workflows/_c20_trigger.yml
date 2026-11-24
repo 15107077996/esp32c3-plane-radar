@@ -1,0 +1,10 @@
+name: trigger build for c20
+on:
+  push:
+    paths:
+      - .github/workflows/_c20_trigger.yml
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo trigger main build
