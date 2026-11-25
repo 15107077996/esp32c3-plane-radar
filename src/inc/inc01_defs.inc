@@ -214,6 +214,14 @@ static int s_ridWifiN = 0;        // beacon frames with the ASTM IE
 static int s_ridOuiLog = 0;       // unknown vendor OUIs logged (max 6)
 static unsigned long s_ridStartMs = 0;
 
+// 远程切页（/page?n=）请求位；-1 表示无请求
+static int s_pageReq = -1;
+// 侦测信道跳频状态与诊断计数
+static bool s_ridHopOff = false;
+static int s_ridChHops = 0;
+static unsigned long s_ridChMs = 0;
+static int s_ridBeacons = 0;
+
 // ---------------- forward --------------
 static void renderClock();
 static void drawPlanes(float sweep);
