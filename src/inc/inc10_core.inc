@@ -45,7 +45,13 @@ static void enterPage(int page) {
   } else if (page == SCR_FORECAST) {
     renderForecast();
   } else if (page == SCR_RAIN) {
-    rainRefresh();
+    // 每次进页面都 rainRefresh() 要重下 meta+瓦片再解码，卡十几秒。
+    // 两分钟内拉过的帧直接复用。
+    if (s_frameN > 0 && s_rainMs && millis() - s_rainMs < 120000UL) {
+      if (drawFrame(s_frameN - 1)) drawRainHud();
+    } else {
+      rainRefresh();
+    }
   } else if (page == SCR_ABOUT) {
     drawAbout();
   } else if (page == SCR_RID) {
@@ -186,6 +192,20 @@ static void tickRid(unsigned long now) {
   }
 }
 
+// ---------------- dns ----------------
+// Arduino-ESP32 2.0.17 的 WiFi.config() 进来第一行就是
+//   if (!tcpip_adapter_is_netif_up(TCP_IF_STA)) return false;
+// begin 之前调是空转，begin 之后调又把 IP/网关/掩码传成 INADDR_NONE，
+// 等于强制 DHCP 重新分配（设备 IP 会从 .94 漂到 .96）。唯一可靠的做法是
+// 直接写 lwIP 的解析服务器表；DHCP 续约会把表覆盖，所以要定期重钉。
+static void pinDns() {
+  ip_addr_t d1, d2;
+  IP_ADDR4(&d1, 114, 114, 114, 114);
+  IP_ADDR4(&d2, 223, 5, 5, 5);
+  dns_setserver(0, &d1);
+  dns_setserver(1, &d2);
+}
+
 // ---------------- setup ----------------
 // Read a string key only when it exists: calling getString() on a key that was
 // never written makes the NVS layer log an ERROR line on every cold boot.
@@ -277,8 +297,8 @@ void setup() {
   }
   Serial.printf("[wifi] %s rssi=%d\n", WiFi.localIP().toString().c_str(),
                 WiFi.RSSI());
-  WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, IPAddress(114, 114, 114, 114), IPAddress(223, 5, 5, 5));
-  Serial.println("[dns] pinned after connect");
+  pinDns();
+  Serial.println("[dns] pinned via lwip");
   startWeb();
   Serial.printf("[web] lan http://%s  ap http://%s\n",
                 WiFi.localIP().toString().c_str(),
@@ -292,7 +312,8 @@ void setup() {
   }
   syncTime();
   fetchOpenMeteo();
-  fetchPlanes();
+  // 原来是同步 fetchPlanes()：一次 40 KB TLS 要 5~15 秒，期间按键和网页全无响应，
+  // 开机首屏像是死机。改由 loop 里的 fetchPlanesAsync 在后台任务里拉。
 
   s_screen = SCR_CLOCK;
   renderClock();
@@ -304,6 +325,30 @@ void loop() {
   unsigned long now = millis();
   handleButton();
   webLoop();
+  // 首次进 loop 时注册远程切页路由（WebServer 已由 setup 里的 startWeb() 建好）
+  static bool s_pageHooked = false;
+  if (!s_pageHooked && s_srv) {
+    s_srv->on("/page", HTTP_GET, []() {
+      int n = (int)s_srv->arg("n").toInt();
+      if (n < 0 || n >= SCR_N) n = 0;
+      s_pageReq = n;
+      s_srv->send(200, "text/plain", String("page ") + n);
+    });
+    s_pageHooked = true;
+    Serial.println("[web] route /page?n=0..5");
+  }
+  // /page?n= 请求：web 处理完后立刻切页
+  if (s_pageReq >= 0) {
+    int p = s_pageReq;
+    s_pageReq = -1;
+    if (p >= 0 && p < SCR_N) enterPage(p);
+  }
+  // 每 30 秒重钉一次 DNS：DHCP 续约或 WiFi 重连会把它改回去
+  static unsigned long s_dnsMs = 0;
+  if (WiFi.status() == WL_CONNECTED && (s_dnsMs == 0 || now - s_dnsMs >= 30000UL)) {
+    s_dnsMs = now;
+    pinDns();
+  }
   ridTick(now); // drains the radio queue even when the web page is the viewer
   switch (s_screen) {
     case SCR_CLOCK: tickClock(); break;
