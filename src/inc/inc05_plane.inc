@@ -165,14 +165,69 @@ static bool fetchPlanesCore(Plane *dst, int cap, int *outN) {
     http.end();
     return false;
   }
-  String body = http.getString();
+  // adsb.fi v3 是 chunked 传输（clen=-1）、约 40 KB。getString() 用 String
+  // 反复 realloc，最大连续块不够时只读到 26 KB 就断，JSON 必然 IncompleteInput。
+  // 改成固定缓冲区 + HTTPClient 自己解 chunked，解析完立刻释放，不常驻占堆。
+  static char *g_body = nullptr;
+  const size_t bufcap = 46000;
+  if (!g_body) g_body = (char *)malloc(bufcap);
+  if (!g_body) {
+    Serial.println("[planes] no buf");
+    http.end();
+    return false;
+  }
+  class BufSink : public Stream {
+   public:
+    char *b;
+    size_t n;
+    size_t cap;
+    BufSink(char *bb, size_t cc) : b(bb), n(0), cap(cc) {}
+    size_t write(uint8_t c) override {
+      if (n + 1 < cap) b[n++] = (char)c;
+      return 1;
+    }
+    size_t write(const uint8_t *p, size_t len) override {
+      size_t k = 0;
+      while (k < len && n + 1 < cap) b[n++] = (char)p[k++];
+      return k;
+    }
+    int available() override { return 0; }
+    int read() override { return -1; }
+    int peek() override { return -1; }
+    void flush() override {}
+  } sink(g_body, bufcap);
+  int clen = http.getSize();
+  int wlen = (int)http.writeToStream(&sink);
   http.end();
+  if (wlen <= 0) {
+    Serial.printf("[planes] stream %d clen=%d\n", wlen, clen);
+    return false;
+  }
+  g_body[sink.n] = 0;
+  Serial.printf("[planes] len=%d head=%.14s\n", (int)sink.n, g_body);
+
+  // v3 顶层键是 ac、v2 是 aircraft。之前只写了 ac，接口一换就是 0 架。
+  JsonDocument filter;
+  const char *KF[] = {"hex", "flight", "t", "lat", "lon", "alt_baro", "track", "gs"};
+  for (int k = 0; k < 8; k++) {
+    filter["ac"][0][KF[k]] = true;
+    filter["aircraft"][0][KF[k]] = true;
+  }
   JsonDocument doc;
-  if (deserializeJson(doc, body)) {
-    Serial.println("[planes] json fail");
+  DeserializationError de = deserializeJson(
+      doc, g_body, sink.n, DeserializationOption::Filter(filter));
+  if (de) {
+    Serial.printf("[planes] json fail %s\n", de.c_str());
+    free(g_body);
+    g_body = nullptr;
     return false;
   }
   JsonArray ac = doc["ac"];
+  if (ac.isNull()) ac = doc["aircraft"];
+  Serial.printf("[planes] docsz=%d acsz=%d\n", (int)doc.size(), (int)ac.size());
+  // 解析完立刻还给堆：常驻 46 KB 会让开侦测时的连续内存直接失败。
+  free(g_body);
+  g_body = nullptr;
   // Keep the nearest aircraft in distance order: the JSON order is arbitrary,
   // so taking the first entries used to drop the nearby ones.
   int n = 0, seen = 0;
