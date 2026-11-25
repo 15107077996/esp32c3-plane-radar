@@ -104,7 +104,7 @@ static void renderForecast() {
     txtC(wb, 200, C_CYAN);
 
     // Official warning wins the last line; otherwise the observation clock.
-    if (s_alert.length()) {
+    if (s_alert.length() && s_alert != "null") {
       // 官方预警标题常常很长，切到 12 字以内再居中
       char ab[64];
       snprintf(ab, sizeof(ab), "%s", s_alert.c_str());
