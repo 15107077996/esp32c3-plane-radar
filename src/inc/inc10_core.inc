@@ -349,6 +349,36 @@ void loop() {
     s_dnsMs = now;
     pinDns();
   }
+  // RID 侦测期间按 1..13 轮询信道（固定 ch6 只能靠运气撞上广播），每 2 秒报一次
+  static bool s_hopOff = false;
+  static bool s_hopWasOn = false;
+  static int s_hopIdx = 0;
+  static unsigned long s_hopMs = 0;
+  static unsigned long s_diagMs = 0;
+  if (s_ridOn && !s_hopWasOn) { s_hopOff = false; s_hopIdx = 0; s_hopMs = 0; }
+  s_hopWasOn = s_ridOn;
+  if (s_ridOn && s_ridWifiWant && !s_hopOff) {
+    if (s_hopMs == 0 || now - s_hopMs >= 220UL) {
+      s_hopMs = now;
+      s_hopIdx++;
+      if (s_hopIdx >= 13) s_hopIdx = 0;
+      uint8_t ch = (uint8_t)(s_hopIdx + 1);
+      if (ch == 6) ch = (ch >= 13) ? 1 : (uint8_t)(ch + 1);
+      if (esp_wifi_set_channel(ch, WIFI_SECOND_CHAN_NONE) != ESP_OK) {
+        s_hopOff = true;
+        esp_wifi_set_channel(6, WIFI_SECOND_CHAN_NONE);
+        Serial.println("[rid] hop fail -> back to ch6");
+      }
+    }
+  }
+  if (s_ridOn && (s_diagMs == 0 || now - s_diagMs >= 2000UL)) {
+    s_diagMs = now;
+    uint8_t ch = 0;
+    wifi_second_chan_t sc2 = WIFI_SECOND_CHAN_NONE;
+    esp_wifi_get_channel(&ch, &sc2);
+    Serial.printf("[rid] ch=%d ridw=%d bleN=%d frames=%d\n", (int)ch,
+                  s_ridWifiN, s_ridBleN, s_ridFrames);
+  }
   ridTick(now); // drains the radio queue even when the web page is the viewer
   switch (s_screen) {
     case SCR_CLOCK: tickClock(); break;
